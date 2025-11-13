@@ -12,10 +12,11 @@ export function useWordData() {
     async function load() {
       try {
         setLoading(true)
+        const base = import.meta.env.BASE_URL
         const [w, s, p] = await Promise.all([
-          fetch('/data/words.json').then(r => r.json()),
-          fetch('/data/sections.json').then(r => r.json()),
-          fetch('/data/parts_of_speech.json').then(r => r.json()),
+          fetch(`${base}data/words.json`).then(r => r.json()),
+          fetch(`${base}data/sections.json`).then(r => r.json()),
+          fetch(`${base}data/parts_of_speech.json`).then(r => r.json()),
         ])
         if (cancelled) return
         // basic normalization
