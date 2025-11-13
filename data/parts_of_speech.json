@@ -1,0 +1,54 @@
+[
+  {
+    "id": 1,
+    "tag": "Noun"
+  },
+  {
+    "id": 2,
+    "tag": "Verb"
+  },
+  {
+    "id": 3,
+    "tag": "Pronoun"
+  },
+  {
+    "id": 4,
+    "tag": "Determiner"
+  },
+  {
+    "id": 5,
+    "tag": "Adjective"
+  },
+  {
+    "id": 6,
+    "tag": "Verb Phrase"
+  },
+  {
+    "id": 7,
+    "tag": "Adverb"
+  },
+  {
+    "id": 8,
+    "tag": "Preposition"
+  },
+  {
+    "id": 9,
+    "tag": "Interjection"
+  },
+  {
+    "id": 10,
+    "tag": "Conjunction"
+  },
+  {
+    "id": 11,
+    "tag": "Modal Verb"
+  },
+  {
+    "id": 12,
+    "tag": "Number"
+  },
+  {
+    "id": 13,
+    "tag": "Contraction"
+  }
+]
