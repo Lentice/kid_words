@@ -42,7 +42,7 @@ export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearn
         {learned ? '★' : '☆'}
       </button>
       <div className="card">
-        <h2 className="word word-center" style={{ fontSize: getWordFontSize() }}>
+        <h2 className="word word-center" style={{ fontSize: getWordFontSize(), lineHeight: '44px' }}>
           <span onClick={speakWord} title="點擊聽發音">
             {item.word}
           </span>
