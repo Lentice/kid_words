@@ -1,40 +1,15 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { words as wordsData } from '../data/words.js'
+import { sections as sectionsData } from '../data/sections.js'
+import { partsOfSpeech as partsData } from '../data/partsOfSpeech.js'
 
 export function useWordData() {
-  const [words, setWords] = useState([])
-  const [sections, setSections] = useState([])
-  const [parts, setParts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      try {
-        setLoading(true)
-        const base = import.meta.env.BASE_URL
-        const [w, s, p] = await Promise.all([
-          fetch(`${base}data/words.json`).then(r => r.json()),
-          fetch(`${base}data/sections.json`).then(r => r.json()),
-          fetch(`${base}data/parts_of_speech.json`).then(r => r.json()),
-        ])
-        if (cancelled) return
-        // basic normalization
-        w.sort((a,b)=>a.id-b.id)
-        s.sort((a,b)=>a.id-b.id)
-        p.sort((a,b)=>a.id-b.id)
-        setWords(w)
-        setSections(s)
-        setParts(p)
-      } catch (e) {
-        if (!cancelled) setError(e)
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    }
-    load()
-    return () => { cancelled = true }
-  }, [])
+  // Data is now imported directly, so no loading state needed
+  const words = wordsData
+  const sections = sectionsData
+  const parts = partsData
+  const loading = false
+  const error = null
 
   const sectionMap = useMemo(() => Object.fromEntries(sections.map(s => [s.id, s])), [sections])
   const posMap = useMemo(() => Object.fromEntries(parts.map(p => [p.id, p])), [parts])
