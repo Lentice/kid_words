@@ -57,6 +57,14 @@ export default function Learn(){
     })
   }
 
+  const toggleLearned = (id) => {
+    const next = new Set(learnedIds)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    setLearnedIds(next)
+    saveProgress({ learnedIds: next })
+  }
+
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
   if (!filtered.length) return (
@@ -76,6 +84,7 @@ export default function Learn(){
         pos={pos}
         onPrev={onPrev}
         onNext={onNext}
+        onToggleLearned={()=>toggleLearned(current.id)}
       />
       <div className="row" style={{justifyContent:'space-between'}}>
         <div className="progress">已學會：{learnedIds.size} / {words.length}</div>

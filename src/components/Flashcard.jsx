@@ -1,10 +1,10 @@
 import React from 'react'
-import { speak, googleTTSUrl } from '../utils/speech'
+import { speak } from '../utils/speech'
 
-export default function Flashcard({ item, section, pos, learned, onPrev, onNext }){
+export default function Flashcard({ item, section, pos, learned, onPrev, onNext, onToggleLearned }){
   if (!item) return null
   const speakWord = () => speak(item.word)
-  const ttsLink = googleTTSUrl(item.word)
+  const speakExample = () => speak(item.example_en, { rate: 0.75 })
 
   return (
     <div className="card">
@@ -12,17 +12,39 @@ export default function Flashcard({ item, section, pos, learned, onPrev, onNext 
         <span className="chip">{section ? `${section.number}. ${section.name}` : 'Section'}</span>
         <span className="progress">{pos}</span>
       </div>
-      <h2 className="word">{item.word} {learned ? '✅' : ''}</h2>
+      {/* word row with speak button (left) and learned toggle aligned right */}
+      <h2 className="word">
+        <span>
+            {item.word}
+        </span>
+        <button
+          className="icon-btn speak-btn"
+          aria-label="發音單字"
+          title="發音單字"
+          onClick={speakWord}
+        >
+          🔊
+        </button>
+        <button
+          className={`learn-toggle ${learned ? 'on' : ''}`}
+          aria-pressed={learned}
+          aria-label={learned ? '取消已學' : '標記已學'}
+          title={learned ? '取消已學' : '標記已學'}
+          onClick={onToggleLearned}
+        >
+          {learned ? '✅' : '⬜'}
+        </button>
+      </h2>
       <p className="meaning">{item.meaning_cht}</p>
       <div className="examples">
         <div className="en">{item.example_en}</div>
         <div className="zh">{item.example_cht}</div>
       </div>
       <div className="controls">
+        <button className="btn accent" onClick={speakExample}>發音例句</button>
         <button className="btn secondary" onClick={onPrev}>上一個</button>
         <button className="btn" onClick={onNext}>下一個</button>
-        <button className="btn accent" onClick={speakWord}>發音</button>
-        <a className="btn ghost" href={ttsLink} target="_blank" rel="noreferrer">Google TTS</a>
+        {/* keep example pronunciation as a full-size button for clarity */}
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import App from './routes/App.jsx'
 import Learn from './routes/Learn.jsx'
 import Quiz from './routes/Quiz.jsx'
+import Admin from './routes/Admin.jsx'
 import './styles/main.css'
 
 const router = createBrowserRouter([
@@ -14,6 +15,7 @@ const router = createBrowserRouter([
       { index: true, element: <Learn /> },
       { path: 'learn', element: <Learn /> },
       { path: 'quiz', element: <Quiz /> },
+      { path: 'admin', element: <Admin /> },
     ],
   },
 ], {
