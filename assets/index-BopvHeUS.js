@@ -24698,25 +24698,66 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
     ] })
   ] });
 }
-function SectionPicker({ sections: sections2, selectedId, onChange }) {
+function SectionPicker({ sections: sections2, selectedId, selectedIds, onChange }) {
+  const isMulti = selectedIds !== void 0;
   const select = (id2) => {
-    onChange(id2);
+    if (isMulti) {
+      const newSelected = selectedIds.includes(id2) ? selectedIds.filter((x2) => x2 !== id2) : [...selectedIds, id2];
+      onChange(newSelected);
+    } else {
+      onChange(id2);
+    }
   };
   const [open, setOpen] = reactExports.useState(false);
-  const currentSection = reactExports.useMemo(() => {
-    return sections2.find((s) => s.id === selectedId);
-  }, [sections2, selectedId]);
-  const summary = currentSection ? `${currentSection.number}. ${currentSection.name}` : "請選擇";
+  const summary = reactExports.useMemo(() => {
+    if (isMulti) {
+      if (selectedIds.length === 0) return "請選擇（可多選）";
+      if (selectedIds.length === sections2.length) return "全部主題";
+      const names = selectedIds.map((id2) => {
+        const s = sections2.find((x2) => x2.id === id2);
+        return s ? s.number : "";
+      }).filter(Boolean);
+      return `已選 ${names.length} 個：${names.join(", ")}`;
+    } else {
+      const currentSection = sections2.find((s) => s.id === selectedId);
+      return currentSection ? `${currentSection.number}. ${currentSection.name}` : "請選擇";
+    }
+  }, [sections2, selectedId, selectedIds, isMulti]);
+  const toggleAll = () => {
+    if (selectedIds.length === sections2.length) {
+      onChange([]);
+    } else {
+      onChange(sections2.map((s) => s.id));
+    }
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "學習主題 Section" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "muted", children: summary })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { gap: 8 }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: () => setOpen((o) => !o), children: open ? "收合" : "切換…" }) })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8 }, children: [
+        isMulti && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: toggleAll, children: selectedIds.length === sections2.length ? "取消全選" : "全選" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: () => setOpen((o) => !o), children: open ? "收合" : "切換…" })
+      ] })
     ] }),
     open && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "section-list", style: { marginTop: 8 }, children: sections2.map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "section-item", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "section", checked: selectedId === s.id, onChange: () => select(s.id) }),
+      isMulti ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "checkbox",
+          checked: selectedIds.includes(s.id),
+          onChange: () => select(s.id)
+        }
+      ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "radio",
+          name: "section",
+          checked: selectedId === s.id,
+          onChange: () => select(s.id)
+        }
+      ),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
         s.number,
         ". ",
@@ -25047,6 +25088,15 @@ function Quiz() {
     setStarted(true);
     makeQuestion();
   };
+  const endQuiz = () => {
+    setStarted(false);
+    setQ(null);
+    setCount(0);
+    setScore(0);
+    setCorrect(null);
+    setAnswer("");
+    setSelectedOption(null);
+  };
   const normalize = (s) => s.trim().toLowerCase();
   const check = (e) => {
     if (e) e.preventDefault();
@@ -25079,49 +25129,52 @@ function Quiz() {
     if (started) makeQuestion();
   }, [learnedOnly, selected, mode, answerType]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 12 }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked: learnedOnly, onChange: (e) => setLearnedOnly(e.target.checked) }),
-          " 只出已學過"
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
-          "題型：",
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "audio", children: "聽音辨義" })
+    !started && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 12 }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked: learnedOnly, onChange: (e) => setLearnedOnly(e.target.checked) }),
+            " 只出已學過"
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
+            "題型：",
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "audio", children: "聽音辨義" })
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
+            "作答：",
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mcq", children: "選擇題" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "input", children: "填空題" })
+            ] })
           ] })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
-          "作答：",
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mcq", children: "選擇題" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "input", children: "填空題" })
-          ] })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, children: [
-        "開始/重新開始（題庫：",
-        pool.length,
-        "）"
-      ] })
-    ] }),
-    started && q2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card quiz-card", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: dir === "audio" ? "聽音 ➜ 中" : dir === "en2zh" ? "英 ➜ 中" : "中 ➜ 英" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "progress", children: [
-          "正確率 ",
-          accuracy,
-          "%（",
-          score,
-          "/",
-          count,
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, children: [
+          "開始測驗（題庫：",
+          pool.length,
           "）"
         ] })
+      ] })
+    ] }),
+    started && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "progress", children: [
+        "正確率 ",
+        accuracy,
+        "%（",
+        score,
+        "/",
+        count,
+        "）"
       ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: endQuiz, children: "結束測驗" })
+    ] }),
+    started && q2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card quiz-card", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { justifyContent: "space-between" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: dir === "audio" ? "聽音 ➜ 中" : dir === "en2zh" ? "英 ➜ 中" : "中 ➜ 英" }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "question", style: { marginTop: 8, marginBottom: 12 }, children: dir === "en2zh" ? q2.word : dir === "zh2en" ? q2.meaning_cht : "請聽音選擇中文意思" }),
       dir === "audio" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { marginBottom: 8 }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn accent", type: "button", onClick: replayAudio, children: "🔊 再播一次" }) }),
       answerType === "mcq" ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 10 }, children: [
