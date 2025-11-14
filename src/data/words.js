@@ -5,7 +5,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "age",
     "meaning_cht": "年齡",
-    "example_en": "My age is six years old today.",
+    "example_en": "I am six years old today.",
     "example_cht": "我今天六歲了。"
   },
   {
@@ -59,7 +59,7 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "me",
     "meaning_cht": "我 (受格)",
-    "example_en": "The puppy follows me to the school.",
+    "example_en": "The puppy follows me to school.",
     "example_cht": "小狗跟著我一起到學校。"
   },
   {
@@ -869,7 +869,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "pencil",
     "meaning_cht": "鉛筆",
-    "example_en": "My pencil needs a sharp good tip.",
+    "example_en": "My pencil needs a nice sharp tip.",
     "example_cht": "我的鉛筆需要削出尖尖的筆尖。"
   },
   {
@@ -941,7 +941,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "student",
     "meaning_cht": "學生",
-    "example_en": "Every student has a unique superpower waiting to be discovered!",
+    "example_en": "Every student has a special superpower waiting to be discovered!",
     "example_cht": "每個學生都有自己的超能力，等著被發現！"
   },
   {
@@ -2210,7 +2210,7 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "stay",
     "meaning_cht": "停留",
-    "example_en": "Stay a little longer—the fun hasn't ended yet.",
+    "example_en": "Stay a little longer; the fun isn't over yet.",
     "example_cht": "再多待一下下——好玩的還沒結束呢。"
   },
   {
@@ -3111,7 +3111,7 @@ export const words = [
     "word": "remember",
     "meaning_cht": "記得",
     "example_en": "I remember happy moments like collecting precious gem memories.",
-    "example_cht": "我把快樂的時刻一顆顆收藏，像珍珠一樣。"
+  "example_cht": "我把快樂的時刻一顆顆收藏，像珍貴的寶石一樣。"
   },
   {
     "id": 347,
@@ -4505,7 +4505,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "face",
     "meaning_cht": "臉",
-    "example_en": "Every face tells a unique story without words.",
+    "example_en": "Every face tells a special story without words.",
     "example_cht": "每張臉都在說一個特別的故事。"
   },
   {
@@ -7853,7 +7853,7 @@ export const words = [
     "part_of_speech_id": 5,
     "word": "true",
     "meaning_cht": "真實的",
-    "example_en": "True friends are like stars—always there when you can't see them.",
+    "example_en": "True friends are like stars: they're always there even when you can't see them.",
     "example_cht": "真正的朋友像星星一樣，就算看不見也一直在。"
   },
   {
@@ -9608,7 +9608,7 @@ export const words = [
     "part_of_speech_id": 7,
     "word": "quite",
     "meaning_cht": "相當",
-    "example_en": "The dragon's tail is quite long—it wraps around mountains.",
+    "example_en": "The dragon's tail is quite long; it wraps around mountains.",
     "example_cht": "龍的尾巴非常長，能繞過整座山。"
   },
   {
