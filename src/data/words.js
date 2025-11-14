@@ -113,7 +113,7 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "us",
     "meaning_cht": "我們 (受格)",
-    "example_en": "Grandma reads a story to us now.",
+    "example_en": "Grandma is reading a story to us.",
     "example_cht": "奶奶現在在念故事給我們聽。"
   },
   {
@@ -1292,7 +1292,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "store",
     "meaning_cht": "商店",
-    "example_en": "We buy apples at the store now.",
+    "example_en": "We are buying apples at the store.",
     "example_cht": "我們現在去商店買蘋果。"
   },
   {
@@ -1382,7 +1382,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "cloud",
     "meaning_cht": "雲",
-    "example_en": "A cloud covers the sun right now.",
+    "example_en": "A cloud is covering the sun.",
     "example_cht": "一朵雲現在把太陽遮住了。"
   },
   {
@@ -1769,7 +1769,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "island",
     "meaning_cht": "島嶼",
-    "example_en": "The tiny island is surrounded by blue water.",
+    "example_en": "Blue water surrounds the tiny island.",
     "example_cht": "小小的島被藍藍的海水包圍。"
   },
   {
@@ -2633,7 +2633,7 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "woman",
     "meaning_cht": "女人",
-    "example_en": "The woman waters the pretty flowers now.",
+    "example_en": "The woman is watering the pretty flowers.",
     "example_cht": "那位女士正在幫漂亮的花澆水。"
   },
   {
@@ -2759,7 +2759,7 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "listen",
     "meaning_cht": "聽",
-    "example_en": "I listen to the teacher read now.",
+    "example_en": "I am listening to the teacher read.",
     "example_cht": "我現在專心聽老師唸故事。"
   },
   {
@@ -3677,7 +3677,7 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "hide",
     "meaning_cht": "躲藏",
-    "example_en": "I hide behind the long curtain now.",
+    "example_en": "I am hiding behind the long curtain.",
     "example_cht": "我現在躲在長長的窗簾後面。"
   },
   {
@@ -5882,8 +5882,8 @@ export const words = [
     "part_of_speech_id": 8,
     "word": "between",
     "meaning_cht": "在 (兩者)之間",
-    "example_en": "The ball is between two red shoes.",
-    "example_cht": "球在兩隻紅鞋中間。"
+    "example_en": "A tiny mouse hides between two sleeping cats.",
+    "example_cht": "小老鼠躲在兩隻睡覺的貓咪中間。"
   },
   {
     "id": 655,
@@ -6287,7 +6287,7 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "which",
     "meaning_cht": "哪一個",
-    "example_en": "Which toy do you want to play?",
+    "example_en": "Which toy do you want to play with?",
     "example_cht": "你想玩哪一個玩具？"
   },
   {
@@ -6584,8 +6584,8 @@ export const words = [
     "part_of_speech_id": 4,
     "word": "an",
     "meaning_cht": "一個 (母音前)",
-    "example_en": "I see an elephant at the zoo.",
-    "example_cht": "我在動物園看到一頭大象。"
+    "example_en": "I see an elephant wearing a tiny hat!",
+    "example_cht": "我看到一頭大象戴著小帽子!"
   },
   {
     "id": 733,
@@ -6647,8 +6647,8 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "do",
     "meaning_cht": "做",
-    "example_en": "I do my homework after I eat.",
-    "example_cht": "我吃完飯就寫作業。"
+    "example_en": "Robots do a funny dance when they are happy.",
+    "example_cht": "機器人開心的時候會跳有趣的舞。"
   },
   {
     "id": 740,
@@ -6692,8 +6692,8 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "have",
     "meaning_cht": "擁有",
-    "example_en": "I have a red bike to ride.",
-    "example_cht": "我有一台紅色的腳踏車可以騎。"
+    "example_en": "I have a magic red bike that can fly!",
+    "example_cht": "我有一台會飛的魔法紅色腳踏車!"
   },
   {
     "id": 745,
@@ -6944,7 +6944,7 @@ export const words = [
     "part_of_speech_id": 5,
     "word": "orange",
     "meaning_cht": "橘色的",
-    "example_en": "An orange fish swims by me now.",
+    "example_en": "An orange fish is swimming by me.",
     "example_cht": "現在有一條橘色的魚游過我旁邊。"
   },
   {
@@ -8195,8 +8195,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "pair",
     "meaning_cht": "一對",
-    "example_en": "I have a pair of matching red socks.",
-    "example_cht": "我有一雙一樣的紅襪子。"
+    "example_en": "I have a pair of silly socks that giggle when I walk!",
+    "example_cht": "我有一雙好笑的襪子,我走路時它們會咯咯笑!"
   },
   {
     "id": 912,
@@ -8384,8 +8384,8 @@ export const words = [
     "part_of_speech_id": 5,
     "word": "tall",
     "meaning_cht": "高的",
-    "example_en": "The tree is tall and very green.",
-    "example_cht": "這棵樹很高、也很綠。"
+    "example_en": "The giraffe is so tall that it can touch the clouds!",
+    "example_cht": "長頸鹿好高,高到可以摸到雲!"
   },
   {
     "id": 933,
@@ -9455,8 +9455,8 @@ export const words = [
     "part_of_speech_id": 5,
     "word": "own",
     "meaning_cht": "自己的",
-    "example_en": "I have my own room at home.",
-    "example_cht": "我在家裡有自己的房間。"
+    "example_en": "I have my own secret hideout in the tree!",
+    "example_cht": "我在樹上有自己的祕密基地!"
   },
   {
     "id": 1052,
@@ -10031,8 +10031,8 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "going",
     "meaning_cht": "正在去/將要",
-    "example_en": "I am going to school right now.",
-    "example_cht": "我現在正要去上學。"
+    "example_en": "The snail is going on a big adventure today!",
+    "example_cht": "小蝸牛今天要去展開大冒險了!"
   },
   {
     "id": 1116,
@@ -10652,8 +10652,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "apple",
     "meaning_cht": "蘋果",
-    "example_en": "I eat a red apple very slowly.",
-    "example_cht": "我慢慢地吃一顆紅蘋果。"
+    "example_en": "This shiny red apple fell from the sky!",
+    "example_cht": "這顆亮晶晶的紅蘋果從天上掉下來!"
   },
   {
     "id": 1185,
@@ -10841,8 +10841,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "snack",
     "meaning_cht": "點心",
-    "example_en": "I eat a healthy snack after school ends.",
-    "example_cht": "放學後我吃個健康的小點心。"
+    "example_en": "My snack is a cookie that smiles at me!",
+    "example_cht": "我的點心是一塊對我微笑的餅乾!"
   },
   {
     "id": 1206,
@@ -10886,8 +10886,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "sandwich",
     "meaning_cht": "三明治",
-    "example_en": "I eat a yummy sandwich at lunch.",
-    "example_cht": "我午餐吃好吃的三明治。"
+    "example_en": "My sandwich has rainbow colors inside!",
+    "example_cht": "我的三明治裡面有彩虹顏色!"
   },
   {
     "id": 1211,
