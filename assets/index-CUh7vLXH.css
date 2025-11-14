@@ -161,9 +161,16 @@ body {
     width: 100%;
     border: 4px solid var(--accent);
     position: relative;
-    min-height: 440px;
+    min-height: 340px;
     display: flex;
     flex-direction: column
+}
+
+/* 當視窗高度大於 440px 時，設定 min-height 為 440px */
+@media (min-height: 441px) {
+    .card {
+        min-height: 440px;
+    }
 }
 
 .card-header {
