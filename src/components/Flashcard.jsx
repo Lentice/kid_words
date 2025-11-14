@@ -8,6 +8,15 @@ export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearn
   const speakWord = () => speak(item.word, { rate: wordSpeed })
   const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed })
 
+  // 根據單字長度動態調整字體大小
+  const getWordFontSize = () => {
+    const len = item.word.length
+    if (len <= 8) return '44px'
+    if (len <= 12) return '36px'
+    if (len <= 16) return '30px'
+    return '24px'
+  }
+
   return (
     <div className="card-wrapper">
       <button
@@ -17,10 +26,10 @@ export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearn
         title={learned ? '取消已學' : '標記已學'}
         onClick={onToggleLearned}
       >
-        {learned ? '✅' : '⬜'}
+        {learned ? '★' : '☆'}
       </button>
       <div className="card">
-        <h2 className="word word-center">
+        <h2 className="word word-center" style={{ fontSize: getWordFontSize() }}>
           <span onClick={speakWord} title="點擊聽發音">
             {item.word}
           </span>
