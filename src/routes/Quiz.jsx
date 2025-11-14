@@ -102,6 +102,16 @@ export default function Quiz(){
 
   const start = () => { setStarted(true); makeQuestion() }
 
+  const endQuiz = () => {
+    setStarted(false)
+    setQ(null)
+    setCount(0)
+    setScore(0)
+    setCorrect(null)
+    setAnswer('')
+    setSelectedOption(null)
+  }
+
   const normalize = (s) => s.trim().toLowerCase()
   const check = (e) => {
     if (e) e.preventDefault()
@@ -135,38 +145,48 @@ export default function Quiz(){
 
   return (
     <div className="stack" style={{gap:16,maxWidth:900,width:'100%'}}>
-      <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
+      {!started && (
+        <>
+          <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
 
-      <div className="panel row" style={{justifyContent:'space-between'}}>
-        <div className="row" style={{gap:12}}>
-          <label className="row" style={{gap:6}}>
-            <input type="checkbox" checked={learnedOnly} onChange={e=>setLearnedOnly(e.target.checked)} /> 只出已學過
-          </label>
-          <label className="row" style={{gap:6}}>
-            題型：
-            <select value={mode} onChange={e=>setMode(e.target.value)}>
-              <option value="mixed">混合</option>
-              <option value="en2zh">英 ➜ 中</option>
-              <option value="zh2en">中 ➜ 英</option>
-              <option value="audio">聽音辨義</option>
-            </select>
-          </label>
-          <label className="row" style={{gap:6}}>
-            作答：
-            <select value={answerType} onChange={e=>setAnswerType(e.target.value)}>
-              <option value="mcq">選擇題</option>
-              <option value="input">填空題</option>
-            </select>
-          </label>
+          <div className="panel row" style={{justifyContent:'space-between'}}>
+            <div className="row" style={{gap:12}}>
+              <label className="row" style={{gap:6}}>
+                <input type="checkbox" checked={learnedOnly} onChange={e=>setLearnedOnly(e.target.checked)} /> 只出已學過
+              </label>
+              <label className="row" style={{gap:6}}>
+                題型：
+                <select value={mode} onChange={e=>setMode(e.target.value)}>
+                  <option value="mixed">混合</option>
+                  <option value="en2zh">英 ➜ 中</option>
+                  <option value="zh2en">中 ➜ 英</option>
+                  <option value="audio">聽音辨義</option>
+                </select>
+              </label>
+              <label className="row" style={{gap:6}}>
+                作答：
+                <select value={answerType} onChange={e=>setAnswerType(e.target.value)}>
+                  <option value="mcq">選擇題</option>
+                  <option value="input">填空題</option>
+                </select>
+              </label>
+            </div>
+            <button className="btn" onClick={start} disabled={pool.length===0}>開始測驗（題庫：{pool.length}）</button>
+          </div>
+        </>
+      )}
+
+      {started && (
+        <div className="panel row" style={{justifyContent:'space-between', alignItems:'center'}}>
+          <span className="progress">正確率 {accuracy}%（{score}/{count}）</span>
+          <button className="btn secondary" onClick={endQuiz}>結束測驗</button>
         </div>
-        <button className="btn" onClick={start} disabled={pool.length===0}>開始/重新開始（題庫：{pool.length}）</button>
-      </div>
+      )}
 
       {started && q && (
         <div className="card quiz-card">
           <div className="row" style={{justifyContent:'space-between'}}>
             <span className="chip">{dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英')}</span>
-            <span className="progress">正確率 {accuracy}%（{score}/{count}）</span>
           </div>
           <div className="question" style={{marginTop:8, marginBottom:12}}>
             {dir==='en2zh' ? q.word : dir==='zh2en' ? q.meaning_cht : '請聽音選擇中文意思'}
