@@ -24630,17 +24630,7 @@ function Flashcard({ item, section, pos, learned, onPrev, onNext, onToggleLearne
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "progress", children: pos })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "word", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: item.word }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: "icon-btn speak-btn",
-          "aria-label": "發音單字",
-          title: "發音單字",
-          onClick: speakWord,
-          children: "🔊"
-        }
-      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
@@ -24654,12 +24644,11 @@ function Flashcard({ item, section, pos, learned, onPrev, onNext, onToggleLearne
       )
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn accent", onClick: speakExample, children: "聽例句" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "上一個" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個" })
     ] })
