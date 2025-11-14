@@ -15,7 +15,7 @@ export default function App() {
       <main className="app-main">
         <Outlet />
       </main>
-      <footer className="app-footer">Made with ❤️ for kids</footer>
+      <footer className="app-footer">Made with ❤️ for kids by Lentice</footer>
     </div>
   )
 }
