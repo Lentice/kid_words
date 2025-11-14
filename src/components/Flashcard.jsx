@@ -1,14 +1,24 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { speak, googleTTS } from '../utils/speech'
 import { getProgress } from '../utils/progress'
 
 export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleClick }){
   if (!item) return null
   const { wordSpeed, exampleSpeed } = getProgress()
+  const [isPlayingExample, setIsPlayingExample] = useState(false)
+  
   const speakWord = () => speak(item.word, { rate: wordSpeed })
   const speakExample = () => {
+    if (isPlayingExample) return
+    setIsPlayingExample(true)
     googleTTS(item.example_en, { rate: exampleSpeed })
-    if (onExampleClick) onExampleClick()
+      .then(() => {
+        setIsPlayingExample(false)
+        if (onExampleClick) onExampleClick()
+      })
+      .catch(() => {
+        setIsPlayingExample(false)
+      })
   }
 
   // 根據單字長度動態調整字體大小

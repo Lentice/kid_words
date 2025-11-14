@@ -221,8 +221,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "door",
     "meaning_cht": "門",
-    "example_en": "The door opens to our fun games.",
-    "example_cht": "門打開，就是我們玩樂的世界。"
+    "example_en": "This magical door leads to a candy kingdom!",
+    "example_cht": "這扇魔法門通往糖果王國!"
   },
   {
     "id": 26,
