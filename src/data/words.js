@@ -140,8 +140,8 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "your",
     "meaning_cht": "你的",
-    "example_en": "What is your favorite color to see?",
-    "example_cht": "你最喜歡看的顏色是什麼？"
+    "example_en": "What is your secret superpower today?",
+    "example_cht": "你今天的秘密超能力是什麼？"
   },
   {
     "id": 17,
@@ -150,7 +150,7 @@ export const words = [
     "word": "yours",
     "meaning_cht": "你的東西",
     "example_en": "Is this blue pencil yours that I found?",
-    "example_cht": "這支藍色鉛筆是你的嗎？是我找到的。"
+    "example_cht": "我找到的這支藍色鉛筆是你的嗎？"
   },
   {
     "id": 18,
