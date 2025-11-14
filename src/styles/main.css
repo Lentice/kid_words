@@ -51,6 +51,28 @@ body {
     margin: 0
 }
 
+.menu-toggle {
+    display: none;
+    appearance: none;
+    border: none;
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-size: 28px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: auto;
+    transition: background 0.2s ease;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+}
+
+.menu-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 .nav {
     display: flex;
     gap: 12px;
@@ -63,12 +85,54 @@ body {
     text-decoration: none;
     padding: 8px 12px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.15)
+    background: rgba(255, 255, 255, 0.15);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .nav a.active {
     background: #fff;
     color: #333
+}
+
+@media (max-width: 768px) {
+    .app-header {
+        position: relative;
+    }
+
+    .menu-toggle {
+        display: flex;
+    }
+
+    .nav {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        left: 0;
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
+        flex-direction: column;
+        gap: 0;
+        margin-left: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+        padding: 0 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .nav.nav-open {
+        max-height: 300px;
+        padding: 12px 16px;
+    }
+
+    .nav a {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin: 4px 0;
+    }
 }
 
 .app-main {
