@@ -24737,8 +24737,7 @@ function Learn() {
   }, [saved.lastWordId, words2, sections2]);
   const [selectedSection, setSelectedSection] = reactExports.useState(initialSection);
   const [learnedIds, setLearnedIds] = reactExports.useState(saved.learnedIds || /* @__PURE__ */ new Set());
-  const [dwellReady, setDwellReady] = reactExports.useState(false);
-  const [exampleClicked, setExampleClicked] = reactExports.useState(false);
+  const [exampleClickedId, setExampleClickedId] = reactExports.useState(null);
   const [isEditingProgress, setIsEditingProgress] = reactExports.useState(false);
   const [progressInput, setProgressInput] = reactExports.useState("");
   const [showSectionMenu, setShowSectionMenu] = reactExports.useState(false);
@@ -24765,20 +24764,21 @@ function Learn() {
   const current = filtered[index] || null;
   const pos = `${index + 1} / ${filtered.length}`;
   reactExports.useEffect(() => {
-    setDwellReady(false);
-    setExampleClicked(false);
-    if (!current) return;
-    const t2 = setTimeout(() => setDwellReady(true), 5e3);
-    return () => clearTimeout(t2);
+    setExampleClickedId(null);
   }, [current == null ? void 0 : current.id]);
   reactExports.useEffect(() => {
-    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)) {
-      const nextSet = new Set(learnedIds);
-      nextSet.add(current.id);
-      setLearnedIds(nextSet);
-      saveProgress({ learnedIds: nextSet });
+    if (exampleClickedId !== null) {
+      setLearnedIds((prev) => {
+        if (!prev.has(exampleClickedId)) {
+          const nextSet = new Set(prev);
+          nextSet.add(exampleClickedId);
+          saveProgress({ learnedIds: nextSet });
+          return nextSet;
+        }
+        return prev;
+      });
     }
-  }, [dwellReady, exampleClicked]);
+  }, [exampleClickedId]);
   const onPrev = () => {
     setIndex((i) => {
       var _a;
@@ -24935,7 +24935,7 @@ function Learn() {
         onPrev,
         onNext,
         onToggleLearned: () => toggleLearned(current.id),
-        onExampleClick: () => setExampleClicked(true)
+        onExampleClick: () => setExampleClickedId(current.id)
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between" }, children: [
@@ -24946,10 +24946,8 @@ function Learn() {
         words2.length
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "progress", children: [
-        "停留 ",
-        dwellReady ? "✅" : "⏱️",
-        " | 例句 ",
-        exampleClicked ? "✅" : "❌"
+        "例句 ",
+        exampleClickedId === (current == null ? void 0 : current.id) ? "✅" : "❌"
       ] })
     ] })
   ] });
