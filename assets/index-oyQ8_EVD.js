@@ -24685,7 +24685,7 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize() }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize(), lineHeight: "44px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
