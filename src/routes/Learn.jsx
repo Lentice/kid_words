@@ -11,6 +11,7 @@ export default function Learn(){
   const [index, setIndex] = useState(saved.lastIndex || 0)
   const [learnedIds, setLearnedIds] = useState(saved.learnedIds || new Set())
   const [dwellReady, setDwellReady] = useState(false)
+  const [exampleClicked, setExampleClicked] = useState(false)
 
   const filtered = useMemo(()=>{
     const list = bySections(selected)
@@ -31,6 +32,7 @@ export default function Learn(){
 
   useEffect(()=>{
     setDwellReady(false)
+    setExampleClicked(false)
     if (!current) return
     const t = setTimeout(()=>setDwellReady(true), 5000)
     return ()=>clearTimeout(t)
@@ -44,7 +46,7 @@ export default function Learn(){
     })
   }
   const onNext = () => {
-    if (current && dwellReady && !learnedIds.has(current.id)){
+    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)){
       const nextSet = new Set(learnedIds)
       nextSet.add(current.id)
       setLearnedIds(nextSet)
@@ -87,10 +89,13 @@ export default function Learn(){
         onPrev={onPrev}
         onNext={onNext}
         onToggleLearned={()=>toggleLearned(current.id)}
+        onExampleClick={()=>setExampleClicked(true)}
       />
       <div className="row" style={{justifyContent:'space-between'}}>
-        <div className="progress">已學會：{learnedIds.size} / {words.length}</div>
-        <div className="progress">停留 {dwellReady ? '✅ (5s+)' : '計時中…'}</div>
+        <div className="progress">已學會:{learnedIds.size} / {words.length}</div>
+        <div className="progress">
+          停留 {dwellReady ? '✅' : '⏱️'} | 例句 {exampleClicked ? '✅' : '❌'}
+        </div>
       </div>
     </div>
   )

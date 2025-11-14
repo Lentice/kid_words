@@ -2,11 +2,14 @@ import React from 'react'
 import { speak, googleTTS } from '../utils/speech'
 import { getProgress } from '../utils/progress'
 
-export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }){
+export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleClick }){
   if (!item) return null
   const { wordSpeed, exampleSpeed } = getProgress()
   const speakWord = () => speak(item.word, { rate: wordSpeed })
-  const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed })
+  const speakExample = () => {
+    googleTTS(item.example_en, { rate: exampleSpeed })
+    if (onExampleClick) onExampleClick()
+  }
 
   // 根據單字長度動態調整字體大小
   const getWordFontSize = () => {
@@ -40,8 +43,8 @@ export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearn
         <div className="zh">{item.example_cht}</div>
       </div>
       <div className="controls">
-        <button className="btn secondary" onClick={onPrev}>上一個</button>
-        <button className="btn" onClick={onNext}>下一個</button>
+        <button className="btn secondary" onClick={onPrev}>&lt; 上一個</button>
+        <button className="btn" onClick={onNext}>下一個 &gt;</button>
       </div>
       </div>
     </div>
