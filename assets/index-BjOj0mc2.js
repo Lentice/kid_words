@@ -24624,29 +24624,29 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }) {
   const { wordSpeed, exampleSpeed } = getProgress();
   const speakWord = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed });
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "word", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "button",
-        {
-          className: `learn-toggle ${learned ? "on" : ""}`,
-          "aria-pressed": learned,
-          "aria-label": learned ? "取消已學" : "標記已學",
-          title: learned ? "取消已學" : "標記已學",
-          onClick: onToggleLearned,
-          children: learned ? "✅" : "⬜"
-        }
-      )
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "上一個" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個" })
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-wrapper", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        className: `learn-toggle floating ${learned ? "on" : ""}`,
+        "aria-pressed": learned,
+        "aria-label": learned ? "取消已學" : "標記已學",
+        title: learned ? "取消已學" : "標記已學",
+        onClick: onToggleLearned,
+        children: learned ? "✅" : "⬜"
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "上一個" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個" })
+      ] })
     ] })
   ] });
 }
@@ -24742,7 +24742,7 @@ function Learn() {
   ] });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-header", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-header", style: { marginBottom: -8 }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : "Section" }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "progress", children: pos })
     ] }),
