@@ -24619,16 +24619,12 @@ function saveProgress({ learnedIds, lastIndex, selectedSectionIds, range, wordSp
   if (typeof exampleSpeed === "number") data.exampleSpeed = exampleSpeed;
   write(data);
 }
-function Flashcard({ item, section, pos, learned, onPrev, onNext, onToggleLearned }) {
+function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }) {
   if (!item) return null;
   const { wordSpeed, exampleSpeed } = getProgress();
   const speakWord = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-header", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: section ? `${section.number}. ${section.name}` : "Section" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "progress", children: pos })
-    ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "word", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -24746,13 +24742,15 @@ function Learn() {
   ] });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-header", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : "Section" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "progress", children: pos })
+    ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       Flashcard,
       {
         item: current,
-        section: sectionMap[current.section_id],
         learned: learnedIds.has(current.id),
-        pos,
         onPrev,
         onNext,
         onToggleLearned: () => toggleLearned(current.id)
