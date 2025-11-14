@@ -16,17 +16,9 @@ export default function Flashcard({ item, section, pos, learned, onPrev, onNext,
       </div>
       {/* word row with speak button (left) and learned toggle aligned right */}
       <h2 className="word">
-        <span>
+        <span onClick={speakWord} title="點擊聽發音">
             {item.word}
         </span>
-        <button
-          className="icon-btn speak-btn"
-          aria-label="發音單字"
-          title="發音單字"
-          onClick={speakWord}
-        >
-          🔊
-        </button>
         <button
           className={`learn-toggle ${learned ? 'on' : ''}`}
           aria-pressed={learned}
@@ -38,15 +30,13 @@ export default function Flashcard({ item, section, pos, learned, onPrev, onNext,
         </button>
       </h2>
       <p className="meaning">{item.meaning_cht}</p>
-      <div className="examples">
+      <div className="examples" onClick={speakExample} title="點擊聽例句">
         <div className="en">{item.example_en}</div>
         <div className="zh">{item.example_cht}</div>
       </div>
       <div className="controls">
-        <button className="btn accent" onClick={speakExample}>聽例句</button>
         <button className="btn secondary" onClick={onPrev}>上一個</button>
         <button className="btn" onClick={onNext}>下一個</button>
-        {/* keep example pronunciation as a full-size button for clarity */}
       </div>
     </div>
   )

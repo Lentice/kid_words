@@ -119,37 +119,43 @@ body {
     gap: 16px
 }
 
-.word .icon-btn {
-    margin-left: 20px
+.word > span {
+    cursor: pointer;
+    display: inline-block;
+    min-width: 200px;
+    padding: 8px
 }
 
 .meaning {
     font-size: 22px;
     color: #444;
-    margin: 0 0 4px
+    margin: 0 0 4px;
+    padding-left: 8px
 }
 
 .examples {
     margin-top: 12px;
     background: #fff7e1;
     border-radius: 16px;
-    padding: 12px 16px
+    padding: 12px 16px;
+    cursor: pointer
 }
 
 .examples .en {
-    font-size: 18px
+    font-size: 24px
 }
 
 .examples .zh {
-    font-size: 16px;
+    font-size: 18px;
     color: #4d3b00
 }
 
 .controls {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     margin-top: 16px
 }
 
@@ -196,38 +202,7 @@ body {
     cursor: not-allowed
 }
 
-/* Small circular icon button (e.g., speaker) */
-.icon-btn {
-    appearance: none;
-    border: none;
-    cursor: pointer;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: var(--secondary);
-    color: #002233;
-    box-shadow: 0 4px 0 #3bb1ee;
-    transform: translateY(0);
-    transition: .1s ease;
-    font-size: 20px;
-    line-height: 1
-}
 
-.icon-btn:active {
-    transform: translateY(2px)
-}
-
-.speak-btn {
-    background: transparent;
-    color: var(--secondary);
-    box-shadow: none;
-    font-size: 36px;
-}
 
 /* Learned toggle styling - icon-only, no border/background/padding */
 .learn-toggle {
