@@ -50,8 +50,8 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "is",
     "meaning_cht": "是 (單數)",
-    "example_en": "This moment is full of fun right now.",
-    "example_cht": "現在這一刻充滿好玩的事情。"
+    "example_en": "My teddy bear is a brave superhero!",
+    "example_cht": "我的泰迪熊是個勇敢的超級英雄!"
   },
   {
     "id": 7,
@@ -68,8 +68,8 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "mine",
     "meaning_cht": "我的東西",
-    "example_en": "That shiny red bike is all mine.",
-    "example_cht": "那台亮亮的紅色腳踏車是我的。"
+    "example_en": "This rainbow unicorn with wings is all mine!",
+    "example_cht": "這隻有翅膀的彩虹獨角獸是我的!"
   },
   {
     "id": 9,
@@ -104,8 +104,8 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "ours",
     "meaning_cht": "我們的東西",
-    "example_en": "This cozy fort is ours to play.",
-    "example_cht": "這個暖暖的小堡壘是我們的遊戲基地。"
+    "example_en": "The magical tree house with a slide is all ours!",
+    "example_cht": "這間有溜滑梯的魔法樹屋都是我們的!"
   },
   {
     "id": 13,
@@ -113,8 +113,8 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "us",
     "meaning_cht": "我們 (受格)",
-    "example_en": "Grandma is reading a story to us.",
-    "example_cht": "奶奶現在在念故事給我們聽。"
+    "example_en": "The talking tree tells magical stories to us!",
+    "example_cht": "會說話的樹講神奇的故事給我們聽!"
   },
   {
     "id": 14,
@@ -131,8 +131,8 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "you",
     "meaning_cht": "你",
-    "example_en": "You can make a rocket from a box.",
-    "example_cht": "你也可以用紙箱做一艘火箭。"
+    "example_en": "You can catch falling stars and make a wish!",
+    "example_cht": "你可以接住流星然後許願!"
   },
   {
     "id": 16,
@@ -2237,8 +2237,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "trip",
     "meaning_cht": "旅行",
-    "example_en": "We go on a trip to the beach.",
-    "example_cht": "我們去海邊旅行。"
+    "example_en": "We go on a trip to find mermaids at the beach!",
+    "example_cht": "我們去海邊旅行尋找美人魚!"
   },
   {
     "id": 250,
@@ -2309,8 +2309,8 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "close",
     "meaning_cht": "關閉",
-    "example_en": "I close the book when I finish.",
-    "example_cht": "我看完就把書闔上。"
+    "example_en": "I close the book so the characters can rest.",
+    "example_cht": "我把書闔上,讓裡面的角色可以休息。"
   },
   {
     "id": 258,
@@ -2381,8 +2381,8 @@ export const words = [
     "part_of_speech_id": 2,
     "word": "open",
     "meaning_cht": "打開",
-    "example_en": "I open the box to see inside.",
-    "example_cht": "我打開箱子看看裡面有什麼。"
+    "example_en": "I open the treasure chest and find shiny coins!",
+    "example_cht": "我打開寶箱,發現里面有亮晶晶的金幣!"
   },
   {
     "id": 266,
@@ -5180,8 +5180,8 @@ export const words = [
     "part_of_speech_id": 10,
     "word": "so",
     "meaning_cht": "所以",
-    "example_en": "It is late so we sleep now.",
-    "example_cht": "太晚了，所以我們要睡覺了。"
+    "example_en": "The stars are sleepy, so they close their eyes.",
+    "example_cht": "星星累了,所以牠們閉上眼睛。"
   },
   {
     "id": 577,
@@ -5234,8 +5234,8 @@ export const words = [
     "part_of_speech_id": 8,
     "word": "after",
     "meaning_cht": "在...之後",
-    "example_en": "After lunch we go outside to play.",
-    "example_cht": "午餐後我們到外面去玩。"
+    "example_en": "After lunch we chase rainbows in the garden!",
+    "example_cht": "午餐後我們在花園裡追逐彩虹!"
   },
   {
     "id": 583,
@@ -5567,8 +5567,8 @@ export const words = [
     "part_of_speech_id": 7,
     "word": "now",
     "meaning_cht": "現在",
-    "example_en": "Now it is time to read books.",
-    "example_cht": "現在是讀書時間。"
+    "example_en": "The storybook is calling me to read it now!",
+    "example_cht": "故事書正在叫我快點來讀它!"
   },
   {
     "id": 620,
@@ -6431,8 +6431,8 @@ export const words = [
     "part_of_speech_id": 3,
     "word": "it",
     "meaning_cht": "它",
-    "example_en": "It is a soft fluffy baby cloud.",
-    "example_cht": "它是一朵柔軟蓬鬆的小小雲。"
+    "example_en": "Look! It is a fluffy cloud dancing in the sky!",
+    "example_cht": "你看!它是一朵在天上跳舞的蓬鬆雲!"
   },
   {
     "id": 716,
@@ -8951,8 +8951,8 @@ export const words = [
     "part_of_speech_id": 5,
     "word": "dark",
     "meaning_cht": "黑暗的",
-    "example_en": "It is dark so we use a lamp.",
-    "example_cht": "天色很暗，所以我們開燈。"
+    "example_en": "When it gets dark, fireflies come to light our way!",
+    "example_cht": "天黑的時候,螢火蟲就來照亮我們的路!"
   },
   {
     "id": 996,
@@ -9212,8 +9212,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "party",
     "meaning_cht": "派對/聚會",
-    "example_en": "We have a party for my birthday.",
-    "example_cht": "我們為我的生日開派對。"
+    "example_en": "All the animals come to my birthday party!",
+    "example_cht": "所有的動物都來參加我的生日派對!"
   },
   {
     "id": 1025,
@@ -9923,8 +9923,8 @@ export const words = [
     "part_of_speech_id": 1,
     "word": "conversation",
     "meaning_cht": "對話",
-    "example_en": "We have a nice conversation at dinner time.",
-    "example_cht": "吃晚餐時我們聊得很開心。"
+    "example_en": "The carrots and peas have a funny conversation on my plate!",
+    "example_cht": "紅蘿蔔和豌豆在我的盤子上進行有趣的對話!"
   },
   {
     "id": 1104,
@@ -10085,8 +10085,8 @@ export const words = [
     "part_of_speech_id": 8,
     "word": "of",
     "meaning_cht": "屬於/關於",
-    "example_en": "This is a picture of my family.",
-    "example_cht": "這是一張我的家人的照片。"
+    "example_en": "This is a magic picture of my family waving hello!",
+    "example_cht": "這是一張我家人在揮手說哈囉的魔法照片!"
   },
   {
     "id": 1122,
