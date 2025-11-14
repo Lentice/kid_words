@@ -4,6 +4,11 @@ import SectionPicker from '../components/SectionPicker'
 import { getProgress } from '../utils/progress'
 import { speak } from '../utils/speech'
 
+function speakWithConfig(text) {
+  const { wordSpeed } = getProgress()
+  speak(text, { rate: wordSpeed })
+}
+
 const QUIZ_KEY = 'kids-english-quiz-v1'
 const readQuizState = () => {
   try { return JSON.parse(localStorage.getItem(QUIZ_KEY)) || { wrongCounts:{} } } catch { return { wrongCounts:{} } }
@@ -91,7 +96,7 @@ export default function Quiz(){
     }
 
     if (direction === 'audio'){
-      setTimeout(()=>speak(item.word), 50)
+      setTimeout(()=>speakWithConfig(item.word), 50)
     }
   }
 
@@ -121,7 +126,7 @@ export default function Quiz(){
   }
 
   const next = () => makeQuestion()
-  const replayAudio = () => { if (dir==='audio' && q) speak(q.word) }
+  const replayAudio = () => { if (dir==='audio' && q) speakWithConfig(q.word) }
 
   useEffect(()=>{ if (started) makeQuestion() }, [learnedOnly, selected, mode, answerType])
 

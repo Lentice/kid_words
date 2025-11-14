@@ -46,8 +46,9 @@ npx vite
 # 常態使用
 npm run build
 
-# 或用 npx（繞過本機安裝問題）
+# 或用 npx（繞過本機安裝問題，需手動複製 404.html）
 npx vite build
+Copy-Item dist\index.html dist\404.html
 ```
 
 預覽生產版：
@@ -58,7 +59,7 @@ npm run preview
 
 ## 部署到 GitHub Pages
 
-1. 若你的 GitHub 專案名稱為 `my-repo`，請在建置前設定 base 路徑：
+1. 本專案已設定 base 路徑為 `/kid_words/`。若你 fork 後改了專案名稱（例如 `my-repo`），請在建置前設定 base 路徑：
 
 ```powershell
 $env:BASE_URL="/my-repo/"
@@ -67,7 +68,7 @@ npm run build
 
 或直接在 `vite.config.js` 把 `base` 改成 `'/my-repo/'`。
 
-2. 建置完成後，產生 `dist/404.html`（已在 `postbuild` 自動複製 `index.html`），確保前端路由可在 Pages 正常刷新。
+2. 建置完成後，會自動產生 `dist/404.html`（在 build script 中複製 `index.html`），確保前端路由可在 Pages 正常刷新。
 
 3. 發布：
 

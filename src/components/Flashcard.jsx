@@ -1,10 +1,12 @@
 import React from 'react'
-import { speak } from '../utils/speech'
+import { speak, googleTTS } from '../utils/speech'
+import { getProgress } from '../utils/progress'
 
 export default function Flashcard({ item, section, pos, learned, onPrev, onNext, onToggleLearned }){
   if (!item) return null
-  const speakWord = () => speak(item.word)
-  const speakExample = () => speak(item.example_en, { rate: 0.75 })
+  const { wordSpeed, exampleSpeed } = getProgress()
+  const speakWord = () => speak(item.word, { rate: wordSpeed })
+  const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed })
 
   return (
     <div className="card">
@@ -41,7 +43,7 @@ export default function Flashcard({ item, section, pos, learned, onPrev, onNext,
         <div className="zh">{item.example_cht}</div>
       </div>
       <div className="controls">
-        <button className="btn accent" onClick={speakExample}>發音例句</button>
+        <button className="btn accent" onClick={speakExample}>聽例句</button>
         <button className="btn secondary" onClick={onPrev}>上一個</button>
         <button className="btn" onClick={onNext}>下一個</button>
         {/* keep example pronunciation as a full-size button for clarity */}

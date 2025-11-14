@@ -1,5 +1,5 @@
 # 專案概述
-建立一個兒童英文單字學習網頁,部署至 GitHub Pages。使用 React + JavaScript + CSS (可選用 redux toolkit)。
+建立一個兒童英文單字學習網頁。使用 React + JavaScript + CSS (可選用 redux toolkit)。
 
 # 核心功能
 

@@ -12,6 +12,7 @@ export default defineConfig({
   },
   build: {
     minify: false,
-    reportCompressedSize: false
+    reportCompressedSize: false,
+    emptyOutDir: true
   }
 })

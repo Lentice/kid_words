@@ -11,6 +11,8 @@ export default function Admin(){
   const total = words.length
 
   const [selected, setSelected] = useState([])
+  const [wordSpeed, setWordSpeed] = useState(prog.wordSpeed)
+  const [exampleSpeed, setExampleSpeed] = useState(prog.exampleSpeed)
   const filtered = useMemo(()=>bySections(selected),[bySections, selected, words])
 
   const clearAll = () => {
@@ -26,6 +28,18 @@ export default function Admin(){
     saveProgress({ learnedIds: set })
     alert('已清除所選 Section 的學習記錄')
     location.reload()
+  }
+
+  const handleWordSpeedChange = (e) => {
+    const speed = parseFloat(e.target.value)
+    setWordSpeed(speed)
+    saveProgress({ wordSpeed: speed })
+  }
+
+  const handleExampleSpeedChange = (e) => {
+    const speed = parseFloat(e.target.value)
+    setExampleSpeed(speed)
+    saveProgress({ exampleSpeed: speed })
   }
 
   if (loading) return <div>載入中…</div>
@@ -46,6 +60,38 @@ export default function Admin(){
           <button className="btn ghost" onClick={clearAll}>清除全部記錄</button>
         </div>
       </div>
+
+      {/* <div className="panel stack" style={{gap:16}}>
+        <strong>🔊 發音速度設定</strong>
+        <div className="stack" style={{gap:12}}>
+          <div className="row" style={{gap:16, alignItems:'center'}}>
+            <label style={{minWidth:100}}>單字速度：</label>
+            <input 
+              type="range" 
+              min="0.5" 
+              max="1.5" 
+              step="0.05" 
+              value={wordSpeed}
+              onChange={handleWordSpeedChange}
+              style={{flex:1}}
+            />
+            <span className="chip" style={{minWidth:60, textAlign:'center'}}>{wordSpeed.toFixed(2)}x</span>
+          </div>
+          <div className="row" style={{gap:16, alignItems:'center'}}>
+            <label style={{minWidth:100}}>例句速度：</label>
+            <input 
+              type="range" 
+              min="0.5" 
+              max="1.5" 
+              step="0.05" 
+              value={exampleSpeed}
+              onChange={handleExampleSpeedChange}
+              style={{flex:1}}
+            />
+            <span className="chip" style={{minWidth:60, textAlign:'center'}}>{exampleSpeed.toFixed(2)}x</span>
+          </div>
+        </div>
+      </div> */}
 
       <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
       <div className="panel row" style={{justifyContent:'space-between'}}>

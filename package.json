@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build.js",
+    "build": "vite build && Copy-Item dist\\index.html dist\\404.html",
     "preview": "vite preview --strictPort --port 5173",
-    "deploy": "node scripts/deploy.js"
+    "deploy": "npm run build && npx gh-pages -d dist -r https://github.com/Lentice/kid_words.git -b gh-pages"
   },
   "dependencies": {
     "react": "^18.3.1",
