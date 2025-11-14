@@ -24624,6 +24624,13 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }) {
   const { wordSpeed, exampleSpeed } = getProgress();
   const speakWord = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed });
+  const getWordFontSize = () => {
+    const len = item.word.length;
+    if (len <= 8) return "44px";
+    if (len <= 12) return "36px";
+    if (len <= 16) return "30px";
+    return "24px";
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-wrapper", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       "button",
@@ -24633,19 +24640,19 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }) {
         "aria-label": learned ? "取消已學" : "標記已學",
         title: learned ? "取消已學" : "標記已學",
         onClick: onToggleLearned,
-        children: learned ? "✅" : "⬜"
+        children: learned ? "★" : "☆"
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize() }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "上一個" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個" })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "< 上一個" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個 >" })
       ] })
     ] })
   ] });

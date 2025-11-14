@@ -129,11 +129,15 @@ body {
     justify-content: center;
     margin-top: -8px;
     margin-bottom: 8px;
-    font-size: 44px
+    font-size: 44px;
+    word-break: break-word;
+    hyphens: auto
 }
 
 .word.word-center > span {
-    text-align: center
+    text-align: center;
+    display: block;
+    width: 100%
 }
 
 .word > span {
@@ -244,12 +248,12 @@ body {
 
 .learn-toggle.floating {
     position: absolute;
-    top: 11px;
-    left: 8px;
+    top: 8px;
+    left: 12px;
     z-index: 5;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
-    padding: 4px;
+    padding: 6px;
     font-size: 32px
 }
 
@@ -258,7 +262,7 @@ body {
 }
 
 .learn-toggle.on {
-    color: #0a5a0a
+    color: #ffc107;
 }
 
 .row {
