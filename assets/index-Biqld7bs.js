@@ -24698,32 +24698,25 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
     ] })
   ] });
 }
-function SectionPicker({ sections: sections2, selectedIds, onChange }) {
-  const toggle = (id2) => {
-    const has = selectedIds.includes(id2);
-    const next = has ? selectedIds.filter((x2) => x2 !== id2) : [...selectedIds, id2];
-    onChange(next);
+function SectionPicker({ sections: sections2, selectedId, onChange }) {
+  const select = (id2) => {
+    onChange(id2);
   };
-  const allSelected = selectedIds.length === 0 || selectedIds.length === sections2.length;
-  const selectAll = () => onChange([]);
   const [open, setOpen] = reactExports.useState(false);
-  const summary = reactExports.useMemo(() => {
-    if (allSelected) return "全部";
-    return `已選 ${selectedIds.length} / ${sections2.length}`;
-  }, [allSelected, selectedIds.length, sections2.length]);
+  const currentSection = reactExports.useMemo(() => {
+    return sections2.find((s) => s.id === selectedId);
+  }, [sections2, selectedId]);
+  const summary = currentSection ? `${currentSection.number}. ${currentSection.name}` : "請選擇";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "選擇學習主題 Section" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { children: "學習主題 Section" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "muted", children: summary })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8 }, children: [
-        open && /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn ghost", onClick: selectAll, children: allSelected ? "全部已選" : "選擇全部" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: () => setOpen((o) => !o), children: open ? "收合" : "篩選…" })
-      ] })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { gap: 8 }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: () => setOpen((o) => !o), children: open ? "收合" : "切換…" }) })
     ] }),
     open && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "section-list", style: { marginTop: 8 }, children: sections2.map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "section-item", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked: selectedIds.length === 0 ? true : selectedIds.includes(s.id), onChange: () => toggle(s.id) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "section", checked: selectedId === s.id, onChange: () => select(s.id) }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
         s.number,
         ". ",
@@ -24735,21 +24728,40 @@ function SectionPicker({ sections: sections2, selectedIds, onChange }) {
 function Learn() {
   const { words: words2, sections: sections2, sectionMap, bySections } = useWordData();
   const saved = reactExports.useMemo(() => getProgress(), []);
-  const [selected, setSelected] = reactExports.useState(saved.selectedSectionIds || []);
-  const [index, setIndex] = reactExports.useState(saved.lastIndex || 0);
+  const initialSection = reactExports.useMemo(() => {
+    if (saved.lastWordId && words2.length > 0) {
+      const lastWord = words2.find((w2) => w2.id === saved.lastWordId);
+      return lastWord ? lastWord.section_id : sections2.length > 0 ? sections2[0].id : null;
+    }
+    return sections2.length > 0 ? sections2[0].id : null;
+  }, [saved.lastWordId, words2, sections2]);
+  const [selectedSection, setSelectedSection] = reactExports.useState(initialSection);
   const [learnedIds, setLearnedIds] = reactExports.useState(saved.learnedIds || /* @__PURE__ */ new Set());
   const [dwellReady, setDwellReady] = reactExports.useState(false);
   const [exampleClicked, setExampleClicked] = reactExports.useState(false);
+  const [isEditingProgress, setIsEditingProgress] = reactExports.useState(false);
+  const [progressInput, setProgressInput] = reactExports.useState("");
+  const [showSectionMenu, setShowSectionMenu] = reactExports.useState(false);
   const filtered = reactExports.useMemo(() => {
-    const list = bySections(selected);
+    if (!selectedSection) return [];
+    const list = bySections([selectedSection]);
     return list;
-  }, [bySections, selected, words2]);
+  }, [bySections, selectedSection, words2]);
+  const initialIndex = reactExports.useMemo(() => {
+    if (saved.lastWordId && filtered.length > 0) {
+      const idx = filtered.findIndex((w2) => w2.id === saved.lastWordId);
+      return idx >= 0 ? idx : 0;
+    }
+    return 0;
+  }, [saved.lastWordId, filtered]);
+  const [index, setIndex] = reactExports.useState(initialIndex);
   reactExports.useEffect(() => {
     if (index >= filtered.length) setIndex(0);
   }, [filtered.length]);
-  reactExports.useEffect(() => {
-    saveProgress({ selectedSectionIds: selected });
-  }, [selected]);
+  const handleSectionChange = (sectionId) => {
+    setSelectedSection(sectionId);
+    setIndex(0);
+  };
   const current = filtered[index] || null;
   const pos = `${index + 1} / ${filtered.length}`;
   reactExports.useEffect(() => {
@@ -24769,15 +24781,19 @@ function Learn() {
   }, [dwellReady, exampleClicked]);
   const onPrev = () => {
     setIndex((i) => {
+      var _a;
       const ni2 = (i - 1 + filtered.length) % filtered.length;
-      saveProgress({ lastIndex: ni2 });
+      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
+      if (wordId) saveProgress({});
       return ni2;
     });
   };
   const onNext = () => {
     setIndex((i) => {
+      var _a;
       const ni2 = (i + 1) % filtered.length;
-      saveProgress({ lastIndex: ni2 });
+      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
+      if (wordId) saveProgress({});
       return ni2;
     });
   };
@@ -24788,15 +24804,128 @@ function Learn() {
     setLearnedIds(next);
     saveProgress({ learnedIds: next });
   };
+  const handleProgressClick = () => {
+    setIsEditingProgress(true);
+    setProgressInput("");
+  };
+  const handleProgressSubmit = () => {
+    var _a;
+    const num = parseInt(progressInput, 10);
+    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
+      const newIndex = num - 1;
+      setIndex(newIndex);
+      const wordId = (_a = filtered[newIndex]) == null ? void 0 : _a.id;
+      if (wordId) saveProgress({});
+    }
+    setIsEditingProgress(false);
+  };
+  const handleProgressKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleProgressSubmit();
+    } else if (e.key === "Escape") {
+      setIsEditingProgress(false);
+    }
+  };
+  reactExports.useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (showSectionMenu && !e.target.closest(".chip")) {
+        setShowSectionMenu(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [showSectionMenu]);
   if (!filtered.length) return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { maxWidth: 900, width: "100%" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedId: selectedSection, onChange: handleSectionChange }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "panel", children: "沒有符合的單字" })
   ] });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-header", style: { marginBottom: -8 }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : "Section" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "progress", children: pos })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { style: { position: "relative" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "span",
+          {
+            className: "chip",
+            onClick: () => setShowSectionMenu(!showSectionMenu),
+            style: { cursor: "pointer", userSelect: "none" },
+            title: "點擊選擇類別",
+            children: sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : "Section"
+          }
+        ),
+        showSectionMenu && /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "div",
+          {
+            style: {
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              marginTop: "4px",
+              background: "white",
+              border: "2px solid #4A90E2",
+              borderRadius: "8px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+              zIndex: 1e3,
+              minWidth: "200px",
+              maxHeight: "300px",
+              overflowY: "auto"
+            },
+            children: sections2.map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "div",
+              {
+                onClick: () => {
+                  handleSectionChange(s.id);
+                  setShowSectionMenu(false);
+                },
+                style: {
+                  padding: "12px 16px",
+                  cursor: "pointer",
+                  background: s.id === selectedSection ? "#E3F2FD" : "white",
+                  fontWeight: s.id === selectedSection ? "bold" : "normal",
+                  borderBottom: "1px solid #eee"
+                },
+                onMouseEnter: (e) => e.target.style.background = "#F5F5F5",
+                onMouseLeave: (e) => e.target.style.background = s.id === selectedSection ? "#E3F2FD" : "white",
+                children: [
+                  s.number,
+                  ". ",
+                  s.name
+                ]
+              },
+              s.id
+            ))
+          }
+        )
+      ] }),
+      isEditingProgress ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          type: "number",
+          value: progressInput,
+          onChange: (e) => setProgressInput(e.target.value),
+          onBlur: handleProgressSubmit,
+          onKeyDown: handleProgressKeyDown,
+          autoFocus: true,
+          min: "1",
+          max: filtered.length,
+          style: {
+            width: "80px",
+            padding: "4px 8px",
+            fontSize: "14px",
+            textAlign: "center",
+            border: "2px solid #4A90E2",
+            borderRadius: "8px"
+          }
+        }
+      ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "span",
+        {
+          className: "progress",
+          onClick: handleProgressClick,
+          style: { cursor: "pointer", userSelect: "none" },
+          title: "點擊跳轉到指定單字",
+          children: pos
+        }
+      )
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
       Flashcard,
