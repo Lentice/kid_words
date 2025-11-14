@@ -2,7 +2,7 @@ import React from 'react'
 import { speak, googleTTS } from '../utils/speech'
 import { getProgress } from '../utils/progress'
 
-export default function Flashcard({ item, section, pos, learned, onPrev, onNext, onToggleLearned }){
+export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }){
   if (!item) return null
   const { wordSpeed, exampleSpeed } = getProgress()
   const speakWord = () => speak(item.word, { rate: wordSpeed })
@@ -10,12 +10,8 @@ export default function Flashcard({ item, section, pos, learned, onPrev, onNext,
 
   return (
     <div className="card">
-      <div className="card-header">
-        <span className="chip">{section ? `${section.number}. ${section.name}` : 'Section'}</span>
-        <span className="progress">{pos}</span>
-      </div>
-      {/* word row with speak button (left) and learned toggle aligned right */}
-      <h2 className="word">
+        {/* word row with speak button (left) and learned toggle aligned right */}
+        <h2 className="word">
         <span onClick={speakWord} title="點擊聽發音">
             {item.word}
         </span>
