@@ -19,8 +19,7 @@ export default function Learn(){
 
   const [selectedSection, setSelectedSection] = useState(initialSection)
   const [learnedIds, setLearnedIds] = useState(saved.learnedIds || new Set())
-  const [dwellReady, setDwellReady] = useState(false)
-  const [exampleClicked, setExampleClicked] = useState(false)
+  const [exampleClickedId, setExampleClickedId] = useState(null)
   const [isEditingProgress, setIsEditingProgress] = useState(false)
   const [progressInput, setProgressInput] = useState('')
   const [showSectionMenu, setShowSectionMenu] = useState(false)
@@ -56,21 +55,22 @@ export default function Learn(){
   const pos = `${index+1} / ${filtered.length}`
 
   useEffect(()=>{
-    setDwellReady(false)
-    setExampleClicked(false)
-    if (!current) return
-    const t = setTimeout(()=>setDwellReady(true), 5000)
-    return ()=>clearTimeout(t)
+    setExampleClickedId(null)
   },[current?.id])
 
   useEffect(()=>{
-    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)){
-      const nextSet = new Set(learnedIds)
-      nextSet.add(current.id)
-      setLearnedIds(nextSet)
-      saveProgress({ learnedIds: nextSet })
+    if (exampleClickedId !== null){
+      setLearnedIds(prev => {
+        if (!prev.has(exampleClickedId)) {
+          const nextSet = new Set(prev)
+          nextSet.add(exampleClickedId)
+          saveProgress({ learnedIds: nextSet })
+          return nextSet
+        }
+        return prev
+      })
     }
-  },[dwellReady, exampleClicked])
+  },[exampleClickedId])
 
   const onPrev = () => {
     setIndex(i=>{
@@ -229,12 +229,12 @@ export default function Learn(){
         onPrev={onPrev}
         onNext={onNext}
         onToggleLearned={()=>toggleLearned(current.id)}
-        onExampleClick={()=>setExampleClicked(true)}
+        onExampleClick={()=>setExampleClickedId(current.id)}
       />
       <div className="row" style={{justifyContent:'space-between'}}>
         <div className="progress">已學會:{learnedIds.size} / {words.length}</div>
         <div className="progress">
-          停留 {dwellReady ? '✅' : '⏱️'} | 例句 {exampleClicked ? '✅' : '❌'}
+          例句 {exampleClickedId === current?.id ? '✅' : '❌'}
         </div>
       </div>
     </div>
