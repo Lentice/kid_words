@@ -24619,11 +24619,14 @@ function saveProgress({ learnedIds, lastIndex, selectedSectionIds, range, wordSp
   if (typeof exampleSpeed === "number") data.exampleSpeed = exampleSpeed;
   write(data);
 }
-function Flashcard({ item, learned, onPrev, onNext, onToggleLearned }) {
+function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleClick }) {
   if (!item) return null;
   const { wordSpeed, exampleSpeed } = getProgress();
   const speakWord = () => speak(item.word, { rate: wordSpeed });
-  const speakExample = () => googleTTS(item.example_en, { rate: exampleSpeed });
+  const speakExample = () => {
+    googleTTS(item.example_en, { rate: exampleSpeed });
+    if (onExampleClick) onExampleClick();
+  };
   const getWordFontSize = () => {
     const len = item.word.length;
     if (len <= 8) return "44px";
@@ -24698,6 +24701,7 @@ function Learn() {
   const [index, setIndex] = reactExports.useState(saved.lastIndex || 0);
   const [learnedIds, setLearnedIds] = reactExports.useState(saved.learnedIds || /* @__PURE__ */ new Set());
   const [dwellReady, setDwellReady] = reactExports.useState(false);
+  const [exampleClicked, setExampleClicked] = reactExports.useState(false);
   const filtered = reactExports.useMemo(() => {
     const list = bySections(selected);
     return list;
@@ -24712,6 +24716,7 @@ function Learn() {
   const pos = `${index + 1} / ${filtered.length}`;
   reactExports.useEffect(() => {
     setDwellReady(false);
+    setExampleClicked(false);
     if (!current) return;
     const t2 = setTimeout(() => setDwellReady(true), 5e3);
     return () => clearTimeout(t2);
@@ -24724,7 +24729,7 @@ function Learn() {
     });
   };
   const onNext = () => {
-    if (current && dwellReady && !learnedIds.has(current.id)) {
+    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)) {
       const nextSet = new Set(learnedIds);
       nextSet.add(current.id);
       setLearnedIds(nextSet);
@@ -24760,19 +24765,22 @@ function Learn() {
         learned: learnedIds.has(current.id),
         onPrev,
         onNext,
-        onToggleLearned: () => toggleLearned(current.id)
+        onToggleLearned: () => toggleLearned(current.id),
+        onExampleClick: () => setExampleClicked(true)
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "progress", children: [
-        "已學會：",
+        "已學會:",
         learnedIds.size,
         " / ",
         words2.length
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "progress", children: [
         "停留 ",
-        dwellReady ? "✅ (5s+)" : "計時中…"
+        dwellReady ? "✅" : "⏱️",
+        " | 例句 ",
+        exampleClicked ? "✅" : "❌"
       ] })
     ] })
   ] });
