@@ -77,7 +77,7 @@ export default function Learn(){
   return (
     <div className="stack" style={{gap:16,maxWidth:900,width:'100%'}}>
       <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
-      <div className="card-header">
+      <div className="card-header" style={{marginBottom:-8}}>
         <span className="chip">{sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : 'Section'}</span>
         <span className="progress">{pos}</span>
       </div>
