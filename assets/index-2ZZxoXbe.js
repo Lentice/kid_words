@@ -24582,10 +24582,37 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
     return false;
   }
 }
+const audioCache = /* @__PURE__ */ new Map();
+const MAX_CACHE_SIZE = 10;
 function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
-  const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
-  const audio = new Audio(url);
-  audio.play().catch((err) => console.log("Audio play error:", err));
+  return new Promise((resolve, reject) => {
+    const cacheKey = `${text}_${lang}_${rate}`;
+    if (audioCache.has(cacheKey)) {
+      const cachedAudio = audioCache.get(cacheKey);
+      cachedAudio.currentTime = 0;
+      cachedAudio.onended = () => resolve();
+      cachedAudio.onerror = (err) => {
+        console.log("Audio play error:", err);
+        reject(err);
+      };
+      cachedAudio.play().catch(reject);
+      return;
+    }
+    const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
+    const audio = new Audio(url);
+    audio.onended = () => resolve();
+    audio.onerror = (err) => {
+      console.log("Audio play error:", err);
+      reject(err);
+    };
+    audio.play().then(() => {
+      if (audioCache.size >= MAX_CACHE_SIZE) {
+        const firstKey = audioCache.keys().next().value;
+        audioCache.delete(firstKey);
+      }
+      audioCache.set(cacheKey, audio);
+    }).catch(reject);
+  });
 }
 const KEY = "kids-english-progress-v1";
 function read() {
@@ -24622,10 +24649,17 @@ function saveProgress({ learnedIds, lastIndex, selectedSectionIds, range, wordSp
 function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleClick }) {
   if (!item) return null;
   const { wordSpeed, exampleSpeed } = getProgress();
+  const [isPlayingExample, setIsPlayingExample] = reactExports.useState(false);
   const speakWord = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => {
-    googleTTS(item.example_en, { rate: exampleSpeed });
-    if (onExampleClick) onExampleClick();
+    if (isPlayingExample) return;
+    setIsPlayingExample(true);
+    googleTTS(item.example_en, { rate: exampleSpeed }).then(() => {
+      setIsPlayingExample(false);
+      if (onExampleClick) onExampleClick();
+    }).catch(() => {
+      setIsPlayingExample(false);
+    });
   };
   const getWordFontSize = () => {
     const len = item.word.length;
