@@ -24766,7 +24766,7 @@ function Learn() {
       setLearnedIds(nextSet);
       saveProgress({ learnedIds: nextSet });
     }
-  }, [current == null ? void 0 : current.id, dwellReady, exampleClicked, learnedIds]);
+  }, [current == null ? void 0 : current.id, dwellReady, exampleClicked]);
   const onPrev = () => {
     setIndex((i) => {
       const ni2 = (i - 1 + filtered.length) % filtered.length;
