@@ -12,6 +12,8 @@ export default function Learn(){
   const [learnedIds, setLearnedIds] = useState(saved.learnedIds || new Set())
   const [dwellReady, setDwellReady] = useState(false)
   const [exampleClicked, setExampleClicked] = useState(false)
+  const [isEditingProgress, setIsEditingProgress] = useState(false)
+  const [progressInput, setProgressInput] = useState('')
 
   const filtered = useMemo(()=>{
     const list = bySections(selected)
@@ -70,6 +72,29 @@ export default function Learn(){
     saveProgress({ learnedIds: next })
   }
 
+  const handleProgressClick = () => {
+    setIsEditingProgress(true)
+    setProgressInput('')
+  }
+
+  const handleProgressSubmit = () => {
+    const num = parseInt(progressInput, 10)
+    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
+      const newIndex = num - 1
+      setIndex(newIndex)
+      saveProgress({ lastIndex: newIndex })
+    }
+    setIsEditingProgress(false)
+  }
+
+  const handleProgressKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleProgressSubmit()
+    } else if (e.key === 'Escape') {
+      setIsEditingProgress(false)
+    }
+  }
+
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
   if (!filtered.length) return (
@@ -84,7 +109,35 @@ export default function Learn(){
       <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
       <div className="card-header" style={{marginBottom:-8}}>
         <span className="chip">{sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : 'Section'}</span>
-        <span className="progress">{pos}</span>
+        {isEditingProgress ? (
+          <input
+            type="number"
+            value={progressInput}
+            onChange={(e) => setProgressInput(e.target.value)}
+            onBlur={handleProgressSubmit}
+            onKeyDown={handleProgressKeyDown}
+            autoFocus
+            min="1"
+            max={filtered.length}
+            style={{
+              width: '80px',
+              padding: '4px 8px',
+              fontSize: '14px',
+              textAlign: 'center',
+              border: '2px solid #4A90E2',
+              borderRadius: '8px'
+            }}
+          />
+        ) : (
+          <span 
+            className="progress" 
+            onClick={handleProgressClick}
+            style={{cursor: 'pointer', userSelect: 'none'}}
+            title="點擊跳轉到指定單字"
+          >
+            {pos}
+          </span>
+        )}
       </div>
       <Flashcard
         item={current}
