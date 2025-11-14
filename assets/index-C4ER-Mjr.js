@@ -24650,10 +24650,6 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
   if (!item) return null;
   const { wordSpeed, exampleSpeed } = getProgress();
   const [isPlayingExample, setIsPlayingExample] = reactExports.useState(false);
-  const [translateX, setTranslateX] = reactExports.useState(0);
-  const [isDragging, setIsDragging] = reactExports.useState(false);
-  const touchStartX = reactExports.useRef(0);
-  const touchEndX = reactExports.useRef(0);
   const speakWord = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => {
     if (isPlayingExample) return;
@@ -24665,31 +24661,6 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
       setIsPlayingExample(false);
     });
   };
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.touches[0].clientX;
-    setIsDragging(true);
-  };
-  const handleTouchMove = (e) => {
-    if (!isDragging) return;
-    touchEndX.current = e.touches[0].clientX;
-    const diff = touchEndX.current - touchStartX.current;
-    const maxMove = 150;
-    const move = Math.max(-maxMove, Math.min(maxMove, diff));
-    setTranslateX(move);
-  };
-  const handleTouchEnd = () => {
-    setIsDragging(false);
-    const diff = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-    if (Math.abs(diff) > minSwipeDistance) {
-      if (diff > 0) {
-        onNext();
-      } else {
-        onPrev();
-      }
-    }
-    setTranslateX(0);
-  };
   const getWordFontSize = () => {
     const len = item.word.length;
     if (len <= 8) return "44px";
@@ -24697,45 +24668,31 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
     if (len <= 16) return "30px";
     return "24px";
   };
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-    "div",
-    {
-      className: "card-wrapper",
-      onTouchStart: handleTouchStart,
-      onTouchMove: handleTouchMove,
-      onTouchEnd: handleTouchEnd,
-      style: {
-        transform: `translateX(${translateX}px)`,
-        transition: isDragging ? "none" : "transform 0.3s ease-out",
-        opacity: 1 - Math.abs(translateX) / 300
-      },
-      children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
-          {
-            className: `learn-toggle floating ${learned ? "on" : ""}`,
-            "aria-pressed": learned,
-            "aria-label": learned ? "取消已學" : "標記已學",
-            title: learned ? "取消已學" : "標記已學",
-            onClick: onToggleLearned,
-            children: learned ? "★" : "☆"
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize() }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "< 上一個" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個 >" })
-          ] })
-        ] })
-      ]
-    }
-  );
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card-wrapper", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        className: `learn-toggle floating ${learned ? "on" : ""}`,
+        "aria-pressed": learned,
+        "aria-label": learned ? "取消已學" : "標記已學",
+        title: learned ? "取消已學" : "標記已學",
+        onClick: onToggleLearned,
+        children: learned ? "★" : "☆"
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize() }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "< 上一個" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個 >" })
+      ] })
+    ] })
+  ] });
 }
 function SectionPicker({ sections: sections2, selectedIds, onChange }) {
   const toggle = (id2) => {
@@ -24798,6 +24755,14 @@ function Learn() {
     const t2 = setTimeout(() => setDwellReady(true), 5e3);
     return () => clearTimeout(t2);
   }, [current == null ? void 0 : current.id]);
+  reactExports.useEffect(() => {
+    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)) {
+      const nextSet = new Set(learnedIds);
+      nextSet.add(current.id);
+      setLearnedIds(nextSet);
+      saveProgress({ learnedIds: nextSet });
+    }
+  }, [current == null ? void 0 : current.id, dwellReady, exampleClicked, learnedIds]);
   const onPrev = () => {
     setIndex((i) => {
       const ni2 = (i - 1 + filtered.length) % filtered.length;
@@ -24806,12 +24771,6 @@ function Learn() {
     });
   };
   const onNext = () => {
-    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)) {
-      const nextSet = new Set(learnedIds);
-      nextSet.add(current.id);
-      setLearnedIds(nextSet);
-      saveProgress({ learnedIds: nextSet });
-    }
     setIndex((i) => {
       const ni2 = (i + 1) % filtered.length;
       saveProgress({ lastIndex: ni2 });
