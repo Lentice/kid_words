@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && powershell -Command \"Copy-Item dist/index.html dist/404.html -Force -ErrorAction SilentlyContinue\"",
+    "build": "node scripts/build.js",
     "preview": "vite preview --strictPort --port 5173",
-    "deploy": "npm run build && npx gh-pages -d dist"
+    "deploy": "node scripts/deploy.js"
   },
   "dependencies": {
     "react": "^18.3.1",
