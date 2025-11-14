@@ -13134,13 +13134,17 @@ function RouterProvider2(props) {
   return /* @__PURE__ */ reactExports.createElement(RouterProvider, { flushSync: reactDomExports.flushSync, ...props });
 }
 function App() {
+  const [menuOpen, setMenuOpen] = reactExports.useState(false);
+  const toggleMenu = () => setMenuOpen(!menuOpen);
+  const closeMenu = () => setMenuOpen(false);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "app", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "app-header", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { children: "小孩學英文" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("nav", { className: "nav", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(NavLink, { to: "/learn", className: ({ isActive }) => isActive ? "active" : "", children: "字卡學習" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(NavLink, { to: "/quiz", className: ({ isActive }) => isActive ? "active" : "", children: "小測驗" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(NavLink, { to: "/admin", className: ({ isActive }) => isActive ? "active" : "", children: "管理" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "menu-toggle", onClick: toggleMenu, "aria-label": "選單", children: menuOpen ? "✕" : "☰" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("nav", { className: `nav ${menuOpen ? "nav-open" : ""}`, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(NavLink, { to: "/learn", className: ({ isActive }) => isActive ? "active" : "", onClick: closeMenu, children: "字卡學習" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(NavLink, { to: "/quiz", className: ({ isActive }) => isActive ? "active" : "", onClick: closeMenu, children: "小測驗" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(NavLink, { to: "/admin", className: ({ isActive }) => isActive ? "active" : "", onClick: closeMenu, children: "管理" })
       ] })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "app-main", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {}) }),
