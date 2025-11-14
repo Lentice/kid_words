@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "rimraf dist && vite build && node -e \"require('fs').copyFileSync('dist/index.html', 'dist/404.html')\"",
     "preview": "vite preview --strictPort --port 5173",
-    "deploy": "npm run build && npx gh-pages -d dist -r https://github.com/Lentice/kid_words.git -b gh-pages"
+    "deploy:imp": "npm run build && npx gh-pages -d dist -r https://github.com/Lentice/kid_words.git -b gh-pages && git checkout main",
+    "deploy": "npm run deploy:imp || git checkout main"
   },
   "dependencies": {
     "react": "^18.3.1",
