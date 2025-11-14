@@ -45,7 +45,7 @@ export default function Learn(){
       setLearnedIds(nextSet)
       saveProgress({ learnedIds: nextSet })
     }
-  },[current?.id, dwellReady, exampleClicked, learnedIds])
+  },[current?.id, dwellReady, exampleClicked])
 
   const onPrev = () => {
     setIndex(i=>{
