@@ -38,6 +38,15 @@ export default function Learn(){
     return ()=>clearTimeout(t)
   },[current?.id])
 
+  useEffect(()=>{
+    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)){
+      const nextSet = new Set(learnedIds)
+      nextSet.add(current.id)
+      setLearnedIds(nextSet)
+      saveProgress({ learnedIds: nextSet })
+    }
+  },[current?.id, dwellReady, exampleClicked, learnedIds])
+
   const onPrev = () => {
     setIndex(i=>{
       const ni = (i-1+filtered.length)%filtered.length
@@ -46,12 +55,6 @@ export default function Learn(){
     })
   }
   const onNext = () => {
-    if (current && dwellReady && exampleClicked && !learnedIds.has(current.id)){
-      const nextSet = new Set(learnedIds)
-      nextSet.add(current.id)
-      setLearnedIds(nextSet)
-      saveProgress({ learnedIds: nextSet })
-    }
     setIndex(i=>{
       const ni = (i+1)%filtered.length
       saveProgress({ lastIndex: ni })
