@@ -224,14 +224,13 @@ body {
 
 .speak-btn {
     background: transparent;
-    border: 3px solid var(--secondary);
     color: var(--secondary);
     box-shadow: none;
+    font-size: 36px;
 }
 
 /* Learned toggle styling - icon-only, no border/background/padding */
 .learn-toggle {
-    border-radius: 50%;
     background: transparent;
     border: none;
     padding: 0;
