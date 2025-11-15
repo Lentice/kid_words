@@ -8,10 +8,6 @@ export const useAdminStore = create((set, get) => ({
   // Actions
   setSelected: (selected) => set({ selected }),
 
-  initializeFromProgress: () => {
-    // No initialization needed
-  },
-
   clearAll: () => {
     saveProgress({ learnedIds: new Set(), lastIndex: 0 })
     alert('已清除所有學習記錄')

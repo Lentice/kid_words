@@ -14,14 +14,9 @@ export default function Admin(){
   const {
     selected,
     setSelected,
-    initializeFromProgress,
     clearAll,
     clearSelectedSections
   } = useAdminStore()
-
-  useEffect(() => {
-    initializeFromProgress()
-  }, [initializeFromProgress])
 
   const filtered = useMemo(()=>bySections(selected),[bySections, selected, words])
 

@@ -10,13 +10,13 @@ export default function Learn(){
   const {
     selectedSection,
     learnedIds,
+    sectionProgress,
     exampleClickedId,
     isEditingProgress,
     progressInput,
     showSectionMenu,
     index,
     setExampleClickedId,
-    setIsEditingProgress,
     setProgressInput,
     setShowSectionMenu,
     setIndex,
@@ -34,9 +34,9 @@ export default function Learn(){
   // Initialize from progress on mount
   useEffect(() => {
     if (words.length > 0 && sections.length > 0) {
-      initializeFromProgress(words, sections)
+      initializeFromProgress(words, sections, bySections)
     }
-  }, [words, sections, initializeFromProgress])
+  }, [words.length, sections.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filtered = useMemo(()=>{
     if (!selectedSection) return []
@@ -86,7 +86,12 @@ export default function Learn(){
             style={{cursor: 'pointer', userSelect: 'none'}}
             title="點擊選擇類別"
           >
-            {sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : 'Section'}
+            {sectionMap[current.section_id] ? (
+              <>
+                {sectionMap[current.section_id].number}. {sectionMap[current.section_id].name}
+                <span style={{fontWeight: 'bold', color: '#4A90E2', marginLeft: '12px'}}>{(sectionProgress[current.section_id]?.percentage || 0)}%</span>
+              </>
+            ) : 'Section'}
           </span>
           {showSectionMenu && (
             <div 
@@ -105,26 +110,34 @@ export default function Learn(){
                 overflowY: 'auto'
               }}
             >
-              {sections.map(s => (
-                <div
-                  key={s.id}
-                  onClick={() => {
-                    handleSectionChange(s.id, filtered, getProgress)
-                    setShowSectionMenu(false)
-                  }}
-                  style={{
-                    padding: '12px 16px',
-                    cursor: 'pointer',
-                    background: s.id === selectedSection ? '#E3F2FD' : 'white',
-                    fontWeight: s.id === selectedSection ? 'bold' : 'normal',
-                    borderBottom: '1px solid #eee'
-                  }}
-                  onMouseEnter={(e) => e.target.style.background = '#F5F5F5'}
-                  onMouseLeave={(e) => e.target.style.background = s.id === selectedSection ? '#E3F2FD' : 'white'}
-                >
-                  {s.number}. {s.name}
-                </div>
-              ))}
+              {sections.map(s => {
+                const progress = sectionProgress[s.id] || { percentage: 0 }
+                
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      handleSectionChange(s.id, filtered, getProgress)
+                      setShowSectionMenu(false)
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      cursor: 'pointer',
+                      background: s.id === selectedSection ? '#E3F2FD' : 'white',
+                      fontWeight: s.id === selectedSection ? 'bold' : 'normal',
+                      borderBottom: '1px solid #eee',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                    onMouseEnter={(e) => e.target.style.background = '#F5F5F5'}
+                    onMouseLeave={(e) => e.target.style.background = s.id === selectedSection ? '#E3F2FD' : 'white'}
+                  >
+                    <span>{s.number}. {s.name}</span>
+                    <span style={{fontWeight: 'bold', color: '#4A90E2', marginLeft: '16px'}}>{progress.percentage}%</span>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -163,8 +176,8 @@ export default function Learn(){
         learned={learnedIds.has(current.id)}
         onPrev={() => onPrev(filtered)}
         onNext={() => onNext(filtered)}
-        onToggleLearned={()=>toggleLearned(current.id)}
-        onExampleClick={()=>onExampleClick(current.id)}
+        onToggleLearned={()=>toggleLearned(current.id, sections, bySections)}
+        onExampleClick={()=>onExampleClick(current.id, sections, bySections)}
       />
       <div className="row" style={{justifyContent:'space-between'}}>
         <div className="progress">已學會:{learnedIds.size} / {words.length}</div>

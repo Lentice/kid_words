@@ -5,6 +5,7 @@ export const useLearnStore = create((set, get) => ({
   // State
   selectedSection: null,
   learnedIds: new Set(),
+  sectionProgress: {}, // { sectionId: { learned: number, total: number, percentage: number } }
   exampleClickedId: null,
   isEditingProgress: false,
   progressInput: '',
@@ -14,13 +15,26 @@ export const useLearnStore = create((set, get) => ({
   // Actions
   setSelectedSection: (selectedSection) => set({ selectedSection }),
   setLearnedIds: (learnedIds) => set({ learnedIds }),
+  setSectionProgress: (sectionProgress) => set({ sectionProgress }),
   setExampleClickedId: (exampleClickedId) => set({ exampleClickedId }),
-  setIsEditingProgress: (isEditingProgress) => set({ isEditingProgress }),
   setProgressInput: (progressInput) => set({ progressInput }),
   setShowSectionMenu: (showSectionMenu) => set({ showSectionMenu }),
   setIndex: (index) => set({ index }),
 
-  initializeFromProgress: (words, sections) => {
+  // Calculate section progress
+  calculateSectionProgress: (sections, bySections, learnedIds) => {
+    const sectionProgress = {}
+    sections.forEach(section => {
+      const sectionWords = bySections([section.id])
+      const learnedCount = sectionWords.filter(w => learnedIds.has(w.id)).length
+      const total = sectionWords.length
+      const percentage = total > 0 ? Math.round((learnedCount / total) * 100) : 0
+      sectionProgress[section.id] = { learned: learnedCount, total, percentage }
+    })
+    set({ sectionProgress })
+  },
+
+  initializeFromProgress: (words, sections, bySections) => {
     const saved = getProgress()
     const learnedIds = saved.learnedIds || new Set()
 
@@ -33,7 +47,19 @@ export const useLearnStore = create((set, get) => ({
       initialSection = sections.length > 0 ? sections[0].id : null
     }
 
-    set({ selectedSection: initialSection, learnedIds })
+    // Calculate initial section progress
+    const sectionProgress = {}
+    if (bySections) {
+      sections.forEach(section => {
+        const sectionWords = bySections([section.id])
+        const learnedCount = sectionWords.filter(w => learnedIds.has(w.id)).length
+        const total = sectionWords.length
+        const percentage = total > 0 ? Math.round((learnedCount / total) * 100) : 0
+        sectionProgress[section.id] = { learned: learnedCount, total, percentage }
+      })
+    }
+
+    set({ selectedSection: initialSection, learnedIds, sectionProgress })
   },
 
   handleSectionChange: (sectionId, filtered, getProgress) => {
@@ -64,7 +90,7 @@ export const useLearnStore = create((set, get) => ({
     })
   },
 
-  toggleLearned: (id) => {
+  toggleLearned: (id, sections, bySections) => {
     set((state) => {
       const next = new Set(state.learnedIds)
       if (next.has(id)) next.delete(id)
@@ -72,6 +98,11 @@ export const useLearnStore = create((set, get) => ({
       saveProgress({ learnedIds: next })
       return { learnedIds: next }
     })
+    // Update section progress
+    if (sections && bySections) {
+      const { learnedIds } = get()
+      get().calculateSectionProgress(sections, bySections, learnedIds)
+    }
   },
 
   handleProgressClick: () => {
@@ -99,9 +130,10 @@ export const useLearnStore = create((set, get) => ({
     }
   },
 
-  onExampleClick: (id) => {
+  onExampleClick: (id, sections, bySections) => {
     set({ exampleClickedId: id })
     // Auto mark as learned
+    const wasAdded = !get().learnedIds.has(id)
     set((state) => {
       if (!state.learnedIds.has(id)) {
         const nextSet = new Set(state.learnedIds)
@@ -111,5 +143,10 @@ export const useLearnStore = create((set, get) => ({
       }
       return state
     })
+    // Update section progress if a new word was learned
+    if (wasAdded && sections && bySections) {
+      const { learnedIds } = get()
+      get().calculateSectionProgress(sections, bySections, learnedIds)
+    }
   }
 }))
