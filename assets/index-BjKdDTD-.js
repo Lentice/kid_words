@@ -24660,7 +24660,8 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
 }
 const audioCache = /* @__PURE__ */ new Map();
 const MAX_CACHE_SIZE = 10;
-function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
+let currentAudio = null;
+function googleTTS(text, { lang = "en", rate = 0.8, stopSpeech = false } = {}) {
   if (!text || String(text).trim() === "") {
     return Promise.resolve();
   }
@@ -24669,21 +24670,46 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
   function playSrc(src, { onStart } = {}) {
     return new Promise((resolve, reject) => {
       try {
+        if (currentAudio) {
+          try {
+            currentAudio.onended = null;
+            currentAudio.onerror = null;
+            currentAudio.pause();
+            currentAudio.src = "";
+          } catch (e) {
+          }
+          currentAudio = null;
+        }
         const a = new Audio(src);
+        currentAudio = a;
         a.preload = "auto";
         a.crossOrigin = "anonymous";
+        const cleanup = () => {
+          try {
+            a.onended = null;
+            a.onerror = null;
+            if (currentAudio === a) currentAudio = null;
+            a.src = "";
+          } catch (e) {
+          }
+        };
         a.onended = () => {
           if (playingCallback) playingCallback(false);
-          resolve();
+          cleanup();
+          resolve(true);
         };
         a.onerror = (err) => {
           if (playingCallback) playingCallback(false);
+          cleanup();
           reject(err || new Error("Audio error"));
         };
         a.play().then(() => {
           if (playingCallback) playingCallback(true);
           if (typeof onStart === "function") onStart();
-        }).catch((err) => reject(err));
+        }).catch((err) => {
+          cleanup();
+          reject(err);
+        });
       } catch (err) {
         reject(err);
       }
@@ -24699,6 +24725,12 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
   }
   console.log("Fetching new TTS audio for:", text);
   const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
+  if (stopSpeech && "speechSynthesis" in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (e) {
+    }
+  }
   return playSrc(url, {
     onStart: () => {
       try {
