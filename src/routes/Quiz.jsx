@@ -226,22 +226,42 @@ export default function Quiz(){
 
       {started && q && (
         <div className="card quiz-card">
-          <div className="row" style={{justifyContent:'space-between'}}>
+          <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
             <span className="chip">{dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英')}</span>
+            {dir === 'audio' && (
+              <div style={{fontSize:'14px', color:'#555'}}>
+                請聽音選擇中文意思
+              </div>
+            )}
           </div>
-          <div className="question" style={{
-            marginTop:8, 
-            marginBottom:12, 
-            textAlign:'center',
-            fontSize: dir==='en2zh' ? getWordFontSize(q.word) : '44px',
-            lineHeight: '44px'
-          }}>
-            {dir==='en2zh' ? q.word : dir==='zh2en' ? q.meaning_cht : '請聽音選擇中文意思'}
-          </div>
-
-          {dir==='audio' && (
-            <div className="row" style={{marginBottom:8}}>
-              <button className="btn accent" type="button" onClick={replayAudio}>🔊 再播一次</button>
+          {dir === 'audio' ? (
+            <div className="stack" style={{alignItems:'center', marginTop:16, marginBottom:24}}>
+              <button 
+                className="btn accent" 
+                type="button" 
+                onClick={replayAudio}
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  fontSize: '48px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                🔊
+              </button>
+            </div>
+          ) : (
+            <div className="question" style={{
+              marginTop:8, 
+              marginBottom:12, 
+              textAlign:'center',
+              fontSize: dir==='en2zh' ? getWordFontSize(q.word) : '44px',
+              lineHeight: '44px'
+            }}>
+              {dir==='en2zh' ? q.word : q.meaning_cht}
             </div>
           )}
 
