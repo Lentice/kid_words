@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import useWordData from '../hooks/useWordData'
 import SectionPicker from '../components/SectionPicker'
+import QuizOptions from '../components/QuizOptions'
+import QuizContent from '../components/QuizContent'
 import { getProgress } from '../utils/progress'
 import { speak } from '../utils/speech'
 
@@ -166,207 +168,47 @@ export default function Quiz(){
   return (
     <div className="stack" style={{gap:16,maxWidth:900,width:'100%'}}>
       {!started && (
-        <div className="panel stack" style={{gap:20}}>
-          <div className="stack" style={{gap:12}}>
-            <div style={{fontSize:'15px', fontWeight:'500', color:'#555'}}>📚 選擇題庫</div>
-            <div className="row" style={{flexWrap:'wrap', gap:16, alignItems:'center'}}>
-              <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='learned' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
-                <input type="radio" name="filter" checked={filterMode==='learned'} onChange={()=>setFilterMode('learned')} /> 
-                只出已學過
-              </label>
-              <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='sections' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
-                <input type="radio" name="filter" checked={filterMode==='sections'} onChange={()=>setFilterMode('sections')} /> 
-                指定主題
-              </label>
-              {filterMode === 'sections' && (
-                <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{flex:'1', minWidth:'180px', maxWidth:'300px'}}>
-                  <option value="">全部主題</option>
-                  {sections.map(s => (
-                    <option key={s.id} value={s.id}>{s.number}. {s.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-          </div>
-
-          <div style={{height:'1px', background:'#f0f0f0'}}></div>
-
-          <div className="stack" style={{gap:16, alignItems:'center'}}>
-            <div className="row" style={{gap:16, flexWrap:'wrap', alignItems:'center', justifyContent:'center'}}>
-              <label className="row" style={{gap:8, alignItems:'center'}}>
-                <span style={{color:'#666', fontSize:'14px'}}>題型</span>
-                <select value={mode} onChange={e=>setMode(e.target.value)}>
-                  <option value="mixed">混合</option>
-                  <option value="en2zh">英 ➜ 中</option>
-                  <option value="zh2en">中 ➜ 英</option>
-                  <option value="audio">聽音辨義</option>
-                </select>
-              </label>
-              <label className="row" style={{gap:8, alignItems:'center'}}>
-                <span style={{color:'#666', fontSize:'14px'}}>作答</span>
-                <select value={answerType} onChange={e=>setAnswerType(e.target.value)}>
-                  <option value="mcq">選擇題</option>
-                  <option value="input">填空題</option>
-                </select>
-              </label>
-            </div>
-            <button className="btn" onClick={start} disabled={pool.length===0} style={{padding:'10px 24px', marginTop:'8px', marginBottom:'8px'}}>
-              開始測驗 ({pool.length} 題)
-            </button>
-          </div>
-        </div>
+        <QuizOptions
+          filterMode={filterMode}
+          setFilterMode={setFilterMode}
+          selected={selected}
+          setSelected={setSelected}
+          sections={sections}
+          mode={mode}
+          setMode={setMode}
+          answerType={answerType}
+          setAnswerType={setAnswerType}
+          pool={pool}
+          start={start}
+        />
       )}
 
-      {started && (
-        <div className="panel row" style={{justifyContent:'space-between', alignItems:'center'}}>
-          <span className="progress">正確率 {accuracy}%（{score}/{count}）</span>
-          <button className="btn secondary" onClick={endQuiz}>結束測驗</button>
-        </div>
-      )}
-
-      {started && q && (
-        <div className="card quiz-card">
-          <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
-            <span className="chip">{dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英')}</span>
-            {dir === 'audio' && (
-              <div style={{fontSize:'14px', color:'#555'}}>
-                請聽音選擇中文意思
-              </div>
-            )}
-          </div>
-          {dir === 'audio' ? (
-            <div className="stack" style={{alignItems:'center', marginTop:16, marginBottom:24}}>
-              <button 
-                className="btn accent" 
-                type="button" 
-                onClick={replayAudio}
-                style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  fontSize: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                🔊
-              </button>
-            </div>
-          ) : (
-            <div className="question" style={{
-              marginTop:8, 
-              marginBottom:12, 
-              textAlign:'center',
-              fontSize: dir==='en2zh' ? getWordFontSize(q.word) : '44px',
-              lineHeight: '44px'
-            }}>
-              {dir==='en2zh' ? q.word : q.meaning_cht}
-            </div>
-          )}
-
-          {answerType === 'mcq' ? (
-            <div className="stack" style={{gap:10}}>
-              {options.map(opt => {
-                const target = (dir==='zh2en') ? q.word : q.meaning_cht
-                const isCorrectAnswer = opt === target
-                const isSelected = selectedOption === opt
-                const showWrong = isSelected && correct === false
-                const showCorrect = isSelected && correct === true
-                
-                return (
-                  <button 
-                    key={opt} 
-                    onClick={()=>{
-                      // 如果已經答錯過且當前顯示錯誤提示，允許重新選擇
-                      if (showWrong) {
-                        setCorrect(null)
-                        setSelectedOption(null)
-                        return
-                      }
-                      
-                      setSelectedOption(opt)
-                      const ok = opt === target
-                      
-                      if (ok) {
-                        // 答對
-                        setCorrect(true)
-                        setCount(c=>c+1)
-                        setScore(s=>s+1)
-                        const cur = qs.current
-                        if (cur.wrongCounts[q.id] > 0) cur.wrongCounts[q.id] -= 1
-                        writeQuizState(cur)
-                        setTimeout(() => makeQuestion(), 800)
-                      } else {
-                        // 答錯，顯示提示並停留在原題
-                        setCorrect(false)
-                        const cur = qs.current
-                        if (!cur.wrongCounts[q.id]) {
-                          // 只在第一次答錯時計數
-                          setCount(c=>c+1)
-                          cur.wrongCounts[q.id] = 1
-                          writeQuizState(cur)
-                        }
-                      }
-                    }} 
-                    type="button" 
-                    style={{
-                      padding: '14px 20px',
-                      paddingRight: showWrong ? '40px' : '20px',
-                      border: `1.5px solid ${showWrong ? '#ffb3ba' : showCorrect ? '#4CAF50' : '#d0d0d0'}`,
-                      borderRadius: '8px',
-                      background: showWrong ? '#fff5f5' : showCorrect ? '#e8f5e9' : 'transparent',
-                      cursor: 'pointer',
-                      fontSize: '18px',
-                      textAlign: 'left',
-                      transition: 'all 0.2s',
-                      position: 'relative'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!showWrong && !showCorrect) {
-                        e.target.style.borderColor = '#4A90E2'
-                        e.target.style.background = '#f8f9fa'
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!showWrong && !showCorrect) {
-                        e.target.style.borderColor = '#d0d0d0'
-                        e.target.style.background = 'transparent'
-                      }
-                    }}
-                  >
-                    {opt}
-                    {showWrong && <span style={{position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px', color: '#ff6b6b'}}>✗</span>}
-                  </button>
-                )
-              })}
-            </div>
-          ) : (
-            <form onSubmit={check} className="stack" style={{gap:12}}>
-              <input
-                autoFocus
-                value={answer}
-                onChange={e=>setAnswer(e.target.value)}
-                placeholder={dir==='zh2en' ? '請輸入英文單字' : '請輸入中文意思'}
-              />
-              <div className="row" style={{gap:8}}>
-                <button className="btn" type="submit">送出</button>
-                <button type="button" className="btn secondary" onClick={next}>跳過/下一題</button>
-              </div>
-            </form>
-          )}
-
-          {correct != null && answerType === 'input' && (
-            <div style={{marginTop:10}}>
-              {correct ? (
-                <span className="badge">答對了！</span>
-              ) : (
-                <span className="badge error">再試試看～ 正解：{dir==='zh2en' ? q.word : q.meaning_cht}</span>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      <QuizContent
+        started={started}
+        accuracy={accuracy}
+        score={score}
+        count={count}
+        endQuiz={endQuiz}
+        dir={dir}
+        q={q}
+        getWordFontSize={getWordFontSize}
+        replayAudio={replayAudio}
+        options={options}
+        selectedOption={selectedOption}
+        correct={correct}
+        setSelectedOption={setSelectedOption}
+        setCorrect={setCorrect}
+        setCount={setCount}
+        setScore={setScore}
+        makeQuestion={makeQuestion}
+        writeQuizState={writeQuizState}
+        qs={qs}
+        answerType={answerType}
+        answer={answer}
+        setAnswer={setAnswer}
+        check={check}
+        next={next}
+      />
     </div>
   )
 }
