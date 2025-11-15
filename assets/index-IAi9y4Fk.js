@@ -24952,11 +24952,11 @@ const useLearnStore = create((set, get) => ({
       return { index: ni2 };
     });
   },
-  onNext: (filtered) => {
+  onNext: (words2) => {
     set((state) => {
       var _a;
-      const ni2 = (state.index + 1) % filtered.length;
-      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
+      const ni2 = (state.index + 1) % words2.length;
+      const wordId = (_a = words2[ni2]) == null ? void 0 : _a.id;
       if (wordId) saveProgress({});
       return { index: ni2 };
     });
@@ -24977,22 +24977,22 @@ const useLearnStore = create((set, get) => ({
   handleProgressClick: () => {
     set({ isEditingProgress: true, progressInput: "" });
   },
-  handleProgressSubmit: (filtered) => {
+  handleProgressSubmit: (words2) => {
     var _a;
     const { progressInput } = get();
     const num = parseInt(progressInput, 10);
-    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
+    if (!isNaN(num) && num >= 1 && num <= words2.length) {
       const newIndex = num - 1;
       set({ index: newIndex, isEditingProgress: false });
-      const wordId = (_a = filtered[newIndex]) == null ? void 0 : _a.id;
+      const wordId = (_a = words2[newIndex]) == null ? void 0 : _a.id;
       if (wordId) saveProgress({});
     } else {
       set({ isEditingProgress: false });
     }
   },
-  handleProgressKeyDown: (e, filtered) => {
+  handleProgressKeyDown: (e, words2) => {
     if (e.key === "Enter") {
-      get().handleProgressSubmit(filtered);
+      get().handleProgressSubmit(words2);
     } else if (e.key === "Escape") {
       set({ isEditingProgress: false });
     }
@@ -25052,10 +25052,10 @@ function Learn() {
     return list;
   }, [bySections, selectedSection, words2]);
   reactExports.useEffect(() => {
-    if (index >= filtered.length) setIndex(0);
-  }, [filtered.length, setIndex]);
-  const current = filtered[index] || null;
-  const pos = `${index + 1} / ${filtered.length}`;
+    if (index >= words2.length) setIndex(0);
+  }, [words2.length, setIndex]);
+  const current = words2[index] || null;
+  const pos = `${index + 1} / ${words2.length}`;
   reactExports.useEffect(() => {
     setExampleClickedId(null);
   }, [current == null ? void 0 : current.id, setExampleClickedId]);
@@ -25155,11 +25155,11 @@ function Learn() {
           type: "number",
           value: progressInput,
           onChange: (e) => setProgressInput(e.target.value),
-          onBlur: () => handleProgressSubmit(filtered),
-          onKeyDown: (e) => handleProgressKeyDown(e, filtered),
+          onBlur: () => handleProgressSubmit(words2),
+          onKeyDown: (e) => handleProgressKeyDown(e, words2),
           autoFocus: true,
           min: "1",
-          max: filtered.length,
+          max: words2.length,
           style: {
             width: "80px",
             padding: "4px 8px",
@@ -25185,8 +25185,8 @@ function Learn() {
       {
         item: current,
         learned: learnedIds.has(current.id),
-        onPrev: () => onPrev(filtered),
-        onNext: () => onNext(filtered),
+        onPrev: () => onPrev(words2),
+        onNext: () => onNext(words2),
         onToggleLearned: () => toggleLearned(current.id, sections2, bySections),
         onExampleClick: () => onExampleClick(current.id, sections2, bySections)
       }
@@ -25206,9 +25206,9 @@ function Learn() {
   ] });
 }
 function QuizOptions({ filterMode, setFilterMode, selected, setSelected, sections: sections2, mode, setMode, answerType, setAnswerType, pool, start }) {
-  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel stack", style: { gap: 20 }, children: [
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel stack", style: { gap: 20, fontSize: 18 }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 12 }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "15px", fontWeight: "500", color: "#555" }, children: "📚 選擇題庫" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontWeight: "500", color: "#555" }, children: "📚 選擇題庫" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { flexWrap: "wrap", gap: 16, alignItems: "center" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, cursor: "pointer", padding: "6px 12px", background: filterMode === "sections" ? "#E3F2FD" : "transparent", borderRadius: "8px", transition: "background 0.2s" }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "sections", onChange: () => setFilterMode("sections") }),
@@ -25218,7 +25218,7 @@ function QuizOptions({ filterMode, setFilterMode, selected, setSelected, section
           /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "learned", onChange: () => setFilterMode("learned") }),
           "只出已學過"
         ] }),
-        filterMode === "sections" && /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: selected[0] || "", onChange: (e) => setSelected(e.target.value ? [e.target.value] : []), style: { flex: "1", minWidth: "180px", maxWidth: "300px", marginLeft: "auto", marginRight: "auto" }, children: [
+        filterMode === "sections" && /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: selected[0] || "", onChange: (e) => setSelected(e.target.value ? [e.target.value] : []), style: { flex: "1", minWidth: "180px", maxWidth: "300px", marginLeft: "auto", marginRight: "auto", fontSize: 18 }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "全部主題" }),
           sections2.map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: s.id, children: [
             s.number,
@@ -25232,8 +25232,8 @@ function QuizOptions({ filterMode, setFilterMode, selected, setSelected, section
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, alignItems: "center" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 16, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "14px" }, children: "題型" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "18px" }, children: "題型" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), style: { color: "#666", fontSize: "18px" }, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
@@ -25242,14 +25242,14 @@ function QuizOptions({ filterMode, setFilterMode, selected, setSelected, section
           ] })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "14px" }, children: "作答" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "18px" }, children: "作答" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), style: { color: "#666", fontSize: "18px" }, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "choice", children: "選擇題" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "input", children: "填空題" })
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, style: { padding: "10px 24px", marginTop: "8px", marginBottom: "8px" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, style: { padding: "10px 24px", marginTop: "8px", marginBottom: "8px", fontSize: 18 }, children: [
         "開始測驗 (",
         pool.length,
         " 題)"
