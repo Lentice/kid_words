@@ -36,14 +36,19 @@ export default function QuizContent({
       {started && q && (
         <div className="card quiz-card">
           <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
-            <span className="chip">{dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英')}</span>
+            <span className="chip">{dir==='sentence' ? '例句聽力' : (dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英'))}</span>
             {dir === 'audio' && (
               <div style={{fontSize:'14px', color:'#555'}}>
                 請聽音選擇中文意思
               </div>
             )}
+            {dir === 'sentence' && (
+              <div style={{fontSize:'14px', color:'#555'}}>
+                請聽例句並選出出現過的單字
+              </div>
+            )}
           </div>
-          {dir === 'audio' ? (
+          {(dir === 'audio' || dir === 'sentence') ? (
             <div className="stack" style={{alignItems:'center', marginTop:6, marginBottom:6}}>
               <button 
                 className="btn accent" 

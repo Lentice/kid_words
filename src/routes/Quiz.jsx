@@ -116,7 +116,7 @@ export default function Quiz(){
         check={check}
         next={next}
         selectOption={selectOption}
-        target={q ? (dir === 'zh2en' ? q.word : q.meaning_cht) : ''}
+        target={q ? ((dir === 'zh2en' || dir === 'sentence') ? q.word : q.meaning_cht) : ''}
       />
     </div>
   )

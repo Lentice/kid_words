@@ -91,7 +91,7 @@ export const useQuizStore = create((set, get) => ({
     const item = weightedPick(pool, weights)
     let direction = mode
     if (mode === 'mixed') {
-      const dirs = ['en2zh', 'zh2en', 'audio']
+      const dirs = ['en2zh', 'zh2en', 'audio', 'sentence']
       direction = dirs[Math.floor(Math.random() * dirs.length)]
     }
     setQ(item)
@@ -134,7 +134,7 @@ export const useQuizStore = create((set, get) => ({
       }
       
       let opts
-      if (direction === 'zh2en') {
+      if (direction === 'zh2en' || direction === 'sentence') {
         opts = [item.word, ...distractors.map(d => d.word)]
       } else {
         opts = [item.meaning_cht, ...distractors.map(d => d.meaning_cht)]
@@ -150,6 +150,11 @@ export const useQuizStore = create((set, get) => ({
 
     if (direction === 'audio') {
       setTimeout(() => speakWithConfig(item.word), 50)
+    }
+    if (direction === 'sentence') {
+      // 隨機選擇例句1或例句2
+      const sentenceText = Math.random() < 0.5 ? item.sentence1 : item.sentence2
+      setTimeout(() => speakWithConfig(sentenceText), 50)
     }
   },
 
@@ -197,6 +202,10 @@ export const useQuizStore = create((set, get) => ({
   replayAudio: (speakWithConfig) => {
     const { dir, q } = get()
     if (dir === 'audio' && q) speakWithConfig(q.word)
+    if (dir === 'sentence' && q) {
+      const sentenceText = Math.random() < 0.5 ? q.sentence1 : q.sentence2
+      speakWithConfig(sentenceText)
+    }
   },
 
   selectOption: (opt, target) => {

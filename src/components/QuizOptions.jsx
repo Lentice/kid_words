@@ -35,6 +35,7 @@ export default function QuizOptions({ filterMode, setFilterMode, selected, setSe
               <option value="en2zh">英 ➜ 中</option>
               <option value="zh2en">中 ➜ 英</option>
               <option value="audio">聽音辨義</option>
+              <option value="sentence">例句聽力</option>
             </select>
           </label>
           <label className="row" style={{gap:8, alignItems:'center'}}>
