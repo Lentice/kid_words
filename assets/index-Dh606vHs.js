@@ -25187,13 +25187,13 @@ function QuizOptions({ filterMode, setFilterMode, selected, setSelected, section
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 12 }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "15px", fontWeight: "500", color: "#555" }, children: "📚 選擇題庫" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { flexWrap: "wrap", gap: 16, alignItems: "center" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, cursor: "pointer", padding: "6px 12px", background: filterMode === "learned" ? "#E3F2FD" : "transparent", borderRadius: "8px", transition: "background 0.2s" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "learned", onChange: () => setFilterMode("learned") }),
-          "只出已學過"
-        ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, cursor: "pointer", padding: "6px 12px", background: filterMode === "sections" ? "#E3F2FD" : "transparent", borderRadius: "8px", transition: "background 0.2s" }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "sections", onChange: () => setFilterMode("sections") }),
           "指定主題"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, cursor: "pointer", padding: "6px 12px", background: filterMode === "learned" ? "#E3F2FD" : "transparent", borderRadius: "8px", transition: "background 0.2s" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "learned", onChange: () => setFilterMode("learned") }),
+          "只出已學過"
         ] }),
         filterMode === "sections" && /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: selected[0] || "", onChange: (e) => setSelected(e.target.value ? [e.target.value] : []), style: { flex: "1", minWidth: "180px", maxWidth: "300px", marginLeft: "auto", marginRight: "auto" }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "全部主題" }),
@@ -25433,7 +25433,7 @@ function sample(arr, k2, avoidId) {
 const useQuizStore = create((set, get) => ({
   // Options state
   selected: [],
-  filterMode: "learned",
+  filterMode: "sections",
   // learned | sections
   mode: "mixed",
   // en2zh | zh2en | audio | mixed
@@ -25533,6 +25533,9 @@ const useQuizStore = create((set, get) => ({
         } else {
           distractors = sample(pool, 3, item.id);
         }
+      }
+      if (!distractors) {
+        distractors = sample(pool, 3, item.id);
       }
       let opts;
       if (direction === "zh2en" || direction === "sentence") {

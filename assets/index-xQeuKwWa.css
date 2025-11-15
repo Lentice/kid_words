@@ -166,10 +166,10 @@ body {
     flex-direction: column
 }
 
-/* 當視窗高度大於 440px 時，設定 min-height 為 440px */
-@media (min-height: 441px) {
+/* 當視窗高度大於 480px 時，設定 min-height 為 480px */
+@media (min-height: 481px) {
     .card {
-        min-height: 440px;
+        min-height: 480px;
     }
 }
 
