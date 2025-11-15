@@ -153,20 +153,19 @@ export default function Quiz(){
     <div className="stack" style={{gap:16,maxWidth:900,width:'100%'}}>
       {!started && (
         <div className="panel stack" style={{gap:20}}>
-          {/* 題庫選擇區 */}
           <div className="stack" style={{gap:12}}>
-            <div style={{fontSize:'16px', fontWeight:'600', color:'#333'}}>📚 題庫範圍</div>
-            <div className="row" style={{gap:16, alignItems:'center', flexWrap:'wrap'}}>
-              <label className="row" style={{gap:8, cursor:'pointer'}}>
+            <div style={{fontSize:'15px', fontWeight:'500', color:'#555'}}>📚 選擇題庫</div>
+            <div className="row" style={{flexWrap:'wrap', gap:16, alignItems:'center'}}>
+              <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='learned' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
                 <input type="radio" name="filter" checked={filterMode==='learned'} onChange={()=>setFilterMode('learned')} /> 
-                <span style={{fontSize:'15px'}}>只出已學過</span>
+                只出已學過
               </label>
-              <label className="row" style={{gap:8, cursor:'pointer'}}>
+              <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='sections' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
                 <input type="radio" name="filter" checked={filterMode==='sections'} onChange={()=>setFilterMode('sections')} /> 
-                <span style={{fontSize:'15px'}}>指定主題</span>
+                指定主題
               </label>
               {filterMode === 'sections' && (
-                <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{minWidth:'200px'}}>
+                <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{flex:'1', minWidth:'180px', maxWidth:'300px'}}>
                   <option value="">全部主題</option>
                   {sections.map(s => (
                     <option key={s.id} value={s.id}>{s.number}. {s.name}</option>
@@ -176,14 +175,12 @@ export default function Quiz(){
             </div>
           </div>
 
-          <div style={{height:'1px', background:'#e0e0e0'}}></div>
+          <div style={{height:'1px', background:'#f0f0f0'}}></div>
 
-          {/* 測驗設定區 */}
-          <div className="stack" style={{gap:12}}>
-            <div style={{fontSize:'16px', fontWeight:'600', color:'#333'}}>⚙️ 測驗設定</div>
-            <div className="row" style={{justifyContent:'center', flexWrap:'wrap', gap:16, alignItems:'center'}}>
+          <div className="stack" style={{gap:16, alignItems:'center'}}>
+            <div className="row" style={{gap:16, flexWrap:'wrap', alignItems:'center', justifyContent:'center'}}>
               <label className="row" style={{gap:8, alignItems:'center'}}>
-                <span style={{fontSize:'15px', color:'#666'}}>題型：</span>
+                <span style={{color:'#666', fontSize:'14px'}}>題型</span>
                 <select value={mode} onChange={e=>setMode(e.target.value)}>
                   <option value="mixed">混合</option>
                   <option value="en2zh">英 ➜ 中</option>
@@ -192,21 +189,15 @@ export default function Quiz(){
                 </select>
               </label>
               <label className="row" style={{gap:8, alignItems:'center'}}>
-                <span style={{fontSize:'15px', color:'#666'}}>作答：</span>
+                <span style={{color:'#666', fontSize:'14px'}}>作答</span>
                 <select value={answerType} onChange={e=>setAnswerType(e.target.value)}>
                   <option value="mcq">選擇題</option>
                   <option value="input">填空題</option>
                 </select>
               </label>
             </div>
-          </div>
-
-          <div style={{height:'1px', background:'#e0e0e0'}}></div>
-
-          {/* 開始按鈕區 */}
-          <div style={{textAlign:'center', paddingBottom:'8px'}}>
-            <button className="btn" onClick={start} disabled={pool.length===0} style={{fontSize:'16px', padding:'12px 32px', minWidth:'200px'}}>
-              🚀 開始測驗（題庫：{pool.length}）
+            <button className="btn" onClick={start} disabled={pool.length===0} style={{padding:'10px 24px', marginTop:'8px', marginBottom:'8px'}}>
+              開始測驗 ({pool.length} 題)
             </button>
           </div>
         </div>
