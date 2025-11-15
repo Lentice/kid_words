@@ -45,6 +45,10 @@ const audioCache = new Map();
 const MAX_CACHE_SIZE = 10;
 
 export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
+  if (!text || text.trim() === '') {
+    return Promise.reject(new Error('No text provided for TTS'));
+  }
+
   return new Promise((resolve, reject) => {
     const cacheKey = `${text}_${lang}_${rate}`;
     
