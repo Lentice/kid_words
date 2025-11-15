@@ -1,5 +1,15 @@
 
+import React, { useEffect } from 'react';
+
 export default function QuizOptions({ filterMode, setFilterMode, selected, setSelected, sections, mode, setMode, answerType, setAnswerType, pool, start }) {
+  useEffect(() => {
+    if (answerType === 'input' && mode !== 'zh2en') {
+      setMode('zh2en');
+    }
+  }, [answerType]);
+
+  const isInput = answerType === 'input';
+
   return (
     <div className="panel stack" style={{gap:20, fontSize: 18}}>
       <div className="stack" style={{gap:12}}>
@@ -29,21 +39,32 @@ export default function QuizOptions({ filterMode, setFilterMode, selected, setSe
       <div className="stack" style={{gap:16, alignItems:'center'}}>
         <div className="row" style={{gap:16, flexWrap:'wrap', alignItems:'center', justifyContent:'center'}}>
           <label className="row" style={{gap:8, alignItems:'center'}}>
-            <span style={{color:'#666', fontSize:'18px'}}>題型</span>
-            <select value={mode} onChange={e=>setMode(e.target.value)} style={{color:'#666', fontSize:'18px'}}>
-              <option value="mixed">混合</option>
-              <option value="en2zh">英 ➜ 中</option>
-              <option value="zh2en">中 ➜ 英</option>
-              <option value="audio">聽音辨義</option>
-              <option value="sentence">例句聽力</option>
-            </select>
-          </label>
-          <label className="row" style={{gap:8, alignItems:'center'}}>
             <span style={{color:'#666', fontSize:'18px'}}>作答</span>
             <select value={answerType} onChange={e=>setAnswerType(e.target.value)} style={{color:'#666', fontSize:'18px'}}>
               <option value="choice">選擇題</option>
               <option value="input">填空題</option>
             </select>
+          </label>
+          <label className="row" style={{gap:8, alignItems:'center'}}>
+            <span style={{color:'#666', fontSize:'18px'}}>題型</span>
+            <select value={mode} onChange={e=>setMode(e.target.value)} style={{color:'#666', fontSize:'18px'}} disabled={isInput}>
+              {isInput ? (
+                <>
+                  <option value="zh2en">中 ➜ 英</option>
+                </>
+              ) : (
+                <>
+                  <option value="mixed">混合</option>
+                  <option value="en2zh">英 ➜ 中</option>
+                  <option value="zh2en">中 ➜ 英</option>
+                  <option value="audio">聽音辨義</option>
+                  <option value="sentence">例句聽力</option>
+                </>
+              )}
+            </select>
+            {isInput && (
+              <span style={{marginLeft:8, color:'#999', fontSize:14}}>（填空題僅支援 中 ➜ 英）</span>
+            )}
           </label>
         </div>
         <button className="btn" onClick={start} disabled={pool.length===0} style={{padding:'10px 24px', marginTop:'8px', marginBottom:'8px', fontSize: 18}}>
