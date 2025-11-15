@@ -1,4 +1,4 @@
-export const words = [
+export const words = ([
   {
     "id": 1,
     "section_id": 1,
@@ -11402,4 +11402,7 @@ export const words = [
     "example_en": "I choose another book for story time.",
     "example_cht": "故事時間我再選一本書。"
   }
-];
+]).sort((a, b) => {
+  if (a.section_id !== b.section_id) return a.section_id - b.section_id;
+  return a.id - b.id;
+});
