@@ -24707,7 +24707,6 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
   if (!item) return null;
   const { wordSpeed, exampleSpeed } = getProgress();
   const [isPlayingExample, setIsPlayingExample] = reactExports.useState(false);
-  const speakWord2 = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => {
     if (isPlayingExample) return;
     setIsPlayingExample(true);
@@ -24738,7 +24737,31 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize(), lineHeight: "44px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord2, title: "點擊聽發音", children: item.word }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize(), lineHeight: "44px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          onClick: () => {
+            try {
+              const p2 = speak(item.word, { rate: wordSpeed });
+              if (p2 && typeof p2.catch === "function") p2.catch(() => {
+              });
+            } catch (err) {
+              console.error("speak click handler error:", err);
+            }
+          },
+          title: "點擊聽發音",
+          style: {
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            margin: 0,
+            cursor: "pointer",
+            font: "inherit",
+            color: "inherit"
+          },
+          children: item.word
+        }
+      ) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
@@ -25265,7 +25288,7 @@ function QuizContent({
     return () => onPlayingChange(null);
   }, []);
   reactExports.useEffect(() => {
-    if (q2 && (dir === "audio" || dir === "sentence")) {
+    if (q2 && (dir === "audio" || dir === "sentence" || dir === "en2zh")) {
       replayAudio();
     }
   }, [q2, dir]);
@@ -25354,7 +25377,7 @@ function QuizContent({
               borderRadius: "8px",
               background: showWrong ? "#fff5f5" : showCorrect ? "#e8f5e9" : "transparent",
               cursor: "pointer",
-              fontSize: "18px",
+              fontSize: dir === "en2zh" ? "22px" : "24px",
               textAlign: "left",
               transition: "all 0.2s",
               position: "relative"
@@ -25480,7 +25503,7 @@ const useQuizStore = create((set, get) => ({
     set({ quizState: newState });
     writeQuizState(newState);
   },
-  makeQuestion: (pool, speakWord2, speakSentence2, allWords = pool) => {
+  makeQuestion: (pool, allWords = pool) => {
     const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered, setCurrentSentence, filterMode } = get();
     if (pool.length === 0) {
       setQ(null);
@@ -25591,7 +25614,9 @@ const useQuizStore = create((set, get) => ({
   },
   replayAudio: (speakWord2, speakSentence2) => {
     const { dir, q: q2, currentSentence } = get();
-    if (dir === "audio" && q2) speakWord2(q2.word);
+    if ((dir === "audio" || dir === "en2zh") && q2) {
+      speakWord2(q2.word);
+    }
     if (dir === "sentence" && currentSentence) {
       speakSentence2(currentSentence);
     }
@@ -25682,17 +25707,17 @@ function Quiz() {
   }, [filterMode, selected, bySections, words2, learned]);
   const start = () => {
     startQuiz();
-    makeQuestion(pool, speakWord, speakSentence, words2);
+    makeQuestion(pool, words2);
   };
   const endQuiz = () => endQuizStore();
   const check = (e) => {
     if (e) e.preventDefault();
     checkAnswer();
   };
-  const next = () => makeQuestion(pool, speakWord, speakSentence, words2);
+  const next = () => makeQuestion(pool, words2);
   const replayAudio = () => replayAudioStore(speakWord, speakSentence);
   reactExports.useEffect(() => {
-    if (started) makeQuestion(pool, speakWord, speakSentence, words2);
+    if (started) makeQuestion(pool, words2);
   }, [filterMode, selected, mode, answerType]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
     !started && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -25728,7 +25753,7 @@ function Quiz() {
         correct,
         setSelectedOption,
         setCorrect,
-        makeQuestion: () => makeQuestion(pool, speakWord, speakSentence, words2),
+        makeQuestion: () => makeQuestion(pool, words2),
         answerType,
         answer,
         setAnswer,
