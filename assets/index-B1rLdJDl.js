@@ -24585,6 +24585,7 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
       return;
     }
     try {
+      console.log("Speaking via SpeechSynthesis:", text);
       window.speechSynthesis.cancel();
       const utter = new SpeechSynthesisUtterance(text);
       utter.lang = lang;
@@ -24614,48 +24615,56 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
   if (!text || String(text).trim() === "") {
     return Promise.resolve();
   }
-  return new Promise((resolve, reject) => {
-    const cacheKey = `${text}_${lang}_${rate}`;
-    if (audioCache.has(cacheKey)) {
-      const cachedAudio = audioCache.get(cacheKey);
-      cachedAudio.currentTime = 0;
-      cachedAudio.onended = () => {
-        if (playingCallback) playingCallback(false);
-        resolve();
-      };
-      cachedAudio.onerror = (err) => {
-        if (playingCallback) playingCallback(false);
-        console.log("Audio play error:", err);
-        speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
-      };
-      cachedAudio.play().then(() => {
-        if (playingCallback) playingCallback(true);
-      }).catch((err) => {
-        speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
-      });
-      return;
-    }
-    const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
-    const audio = new Audio(url);
-    audio.onended = () => {
-      if (playingCallback) playingCallback(false);
-      resolve();
-    };
-    audio.onerror = (err) => {
-      if (playingCallback) playingCallback(false);
-      console.log("Audio play error:", err);
-      speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
-    };
-    audio.play().then(() => {
-      if (playingCallback) playingCallback(true);
-      if (audioCache.size >= MAX_CACHE_SIZE) {
-        const firstKey = audioCache.keys().next().value;
-        audioCache.delete(firstKey);
+  const cacheKey = `${text}_${lang}_${rate}`;
+  const fallbackRate = typeof rate === "number" ? rate : 0.95;
+  function playSrc(src, { onStart } = {}) {
+    return new Promise((resolve, reject) => {
+      try {
+        const a = new Audio(src);
+        a.preload = "auto";
+        a.crossOrigin = "anonymous";
+        a.onended = () => {
+          if (playingCallback) playingCallback(false);
+          resolve();
+        };
+        a.onerror = (err) => {
+          if (playingCallback) playingCallback(false);
+          reject(err || new Error("Audio error"));
+        };
+        a.play().then(() => {
+          if (playingCallback) playingCallback(true);
+          if (typeof onStart === "function") onStart();
+        }).catch((err) => reject(err));
+      } catch (err) {
+        reject(err);
       }
-      audioCache.set(cacheKey, audio);
-    }).catch((err) => {
-      speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
     });
+  }
+  if (audioCache.has(cacheKey)) {
+    console.log("Using cached TTS audio for:", text);
+    const cachedSrc = audioCache.get(cacheKey);
+    return playSrc(cachedSrc).catch((err) => {
+      console.error("Cached TTS playback failed, falling back to SpeechSynthesis:", err);
+      return speak(text, { rate: fallbackRate });
+    });
+  }
+  console.log("Fetching new TTS audio for:", text);
+  const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
+  return playSrc(url, {
+    onStart: () => {
+      try {
+        if (audioCache.size >= MAX_CACHE_SIZE) {
+          const firstKey = audioCache.keys().next().value;
+          audioCache.delete(firstKey);
+        }
+        audioCache.set(cacheKey, url);
+      } catch (err) {
+        console.warn("Failed to set audio cache:", err);
+      }
+    }
+  }).catch((err) => {
+    console.error("Google TTS playback failed, falling back to SpeechSynthesis:", err);
+    return speak(text, { rate: fallbackRate });
   });
 }
 const KEY = "kids-english-progress-v1";
@@ -25502,26 +25511,28 @@ const useQuizStore = create((set, get) => ({
     }
     if (answerType === "choice") {
       let distractors;
-      if (filterMode === "learned" && pool.length < 10 && pool.length > 0) {
-        const usedIds = /* @__PURE__ */ new Set([item.id]);
-        const learnedDistractors = [];
-        const otherDistractors = [];
-        if (pool.length > 1) {
-          const learned = sample(pool, 1, item.id);
-          learnedDistractors.push(...learned);
-          learned.forEach((d) => usedIds.add(d.id));
-        }
-        const needed = 3 - learnedDistractors.length;
-        while (otherDistractors.length < needed && usedIds.size < allWords.length) {
-          const candidate = allWords[Math.floor(Math.random() * allWords.length)];
-          if (!usedIds.has(candidate.id)) {
-            usedIds.add(candidate.id);
-            otherDistractors.push(candidate);
+      if (filterMode === "learned") {
+        if (pool.length < 10) {
+          const usedIds = /* @__PURE__ */ new Set([item.id]);
+          const learnedDistractors = [];
+          const otherDistractors = [];
+          for (let i = 0; i < Math.min(2, pool.length); i++) {
+            const learned = sample(pool, 1, item.id);
+            learnedDistractors.push(...learned);
+            learned.forEach((d) => usedIds.add(d.id));
           }
+          const needed = 3 - learnedDistractors.length;
+          while (otherDistractors.length < needed && usedIds.size < allWords.length) {
+            const candidate = allWords[Math.floor(Math.random() * allWords.length)];
+            if (!usedIds.has(candidate.id)) {
+              usedIds.add(candidate.id);
+              otherDistractors.push(candidate);
+            }
+          }
+          distractors = [...learnedDistractors, ...otherDistractors];
+        } else {
+          distractors = sample(pool, 3, item.id);
         }
-        distractors = [...learnedDistractors, ...otherDistractors];
-      } else {
-        distractors = sample(pool, 3, item.id);
       }
       let opts;
       if (direction === "zh2en" || direction === "sentence") {
@@ -25537,18 +25548,9 @@ const useQuizStore = create((set, get) => ({
     } else {
       setOptions([]);
     }
-    if (direction === "audio") {
-      setTimeout(() => speakWord2(item.word), 50);
-    }
-    if (direction === "sentence") {
-      const { currentSentence } = get();
-      if (currentSentence && String(currentSentence).trim() !== "") {
-        setTimeout(() => speakSentence2(currentSentence), 50);
-      }
-    }
   },
   startQuiz: () => {
-    const { setStarted, makeQuestion } = get();
+    const { setStarted } = get();
     setStarted(true);
   },
   endQuiz: () => {
