@@ -24578,35 +24578,42 @@ function onPlayingChange(callback) {
   playingCallback = callback;
 }
 function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
-  if (!("speechSynthesis" in window)) {
-    console.warn("Speech Synthesis not supported in this browser");
-    return false;
-  }
-  try {
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = lang;
-    utter.rate = rate;
-    utter.pitch = pitch;
-    utter.onstart = () => {
-      if (playingCallback) playingCallback(true);
-    };
-    utter.onend = () => {
+  return new Promise((resolve, reject) => {
+    if (!("speechSynthesis" in window)) {
+      console.warn("Speech Synthesis not supported in this browser");
+      resolve(false);
+      return;
+    }
+    try {
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang;
+      utter.rate = rate;
+      utter.pitch = pitch;
+      utter.onstart = () => {
+        if (playingCallback) playingCallback(true);
+      };
+      utter.onend = () => {
+        if (playingCallback) playingCallback(false);
+        resolve(true);
+      };
+      utter.onerror = (ev) => {
+        if (playingCallback) playingCallback(false);
+        reject(ev || new Error("SpeechSynthesis error"));
+      };
+      window.speechSynthesis.speak(utter);
+    } catch (err) {
       if (playingCallback) playingCallback(false);
-    };
-    utter.onerror = () => {
-      if (playingCallback) playingCallback(false);
-    };
-    window.speechSynthesis.speak(utter);
-    return true;
-  } catch {
-    if (playingCallback) playingCallback(false);
-    return false;
-  }
+      reject(err);
+    }
+  });
 }
 const audioCache = /* @__PURE__ */ new Map();
 const MAX_CACHE_SIZE = 10;
 function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
+  if (!text || String(text).trim() === "") {
+    return Promise.resolve();
+  }
   return new Promise((resolve, reject) => {
     const cacheKey = `${text}_${lang}_${rate}`;
     if (audioCache.has(cacheKey)) {
@@ -24619,11 +24626,13 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
       cachedAudio.onerror = (err) => {
         if (playingCallback) playingCallback(false);
         console.log("Audio play error:", err);
-        reject(err);
+        speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
       };
       cachedAudio.play().then(() => {
         if (playingCallback) playingCallback(true);
-      }).catch(reject);
+      }).catch((err) => {
+        speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
+      });
       return;
     }
     const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
@@ -24635,7 +24644,7 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
     audio.onerror = (err) => {
       if (playingCallback) playingCallback(false);
       console.log("Audio play error:", err);
-      reject(err);
+      speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
     };
     audio.play().then(() => {
       if (playingCallback) playingCallback(true);
@@ -24644,7 +24653,9 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
         audioCache.delete(firstKey);
       }
       audioCache.set(cacheKey, audio);
-    }).catch(reject);
+    }).catch((err) => {
+      speak(text, { rate: typeof rate === "number" ? rate : 0.95 }).then(resolve).catch(reject);
+    });
   });
 }
 const KEY = "kids-english-progress-v1";
@@ -25480,8 +25491,12 @@ const useQuizStore = create((set, get) => ({
     setCorrect(null);
     setAnswered(false);
     if (direction === "sentence") {
-      const sentenceText = Math.random() < 0.5 ? item.sentence1 : item.sentence2;
-      setCurrentSentence(sentenceText);
+      const candidates = [];
+      if (item.sentence1) candidates.push(item.sentence1);
+      if (item.sentence2) candidates.push(item.sentence2);
+      if (item.example_en) candidates.push(item.example_en);
+      const sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : "";
+      setCurrentSentence(sentenceText || "");
     } else {
       setCurrentSentence("");
     }
@@ -25527,7 +25542,9 @@ const useQuizStore = create((set, get) => ({
     }
     if (direction === "sentence") {
       const { currentSentence } = get();
-      setTimeout(() => speakSentence2(currentSentence), 50);
+      if (currentSentence && String(currentSentence).trim() !== "") {
+        setTimeout(() => speakSentence2(currentSentence), 50);
+      }
     }
   },
   startQuiz: () => {
