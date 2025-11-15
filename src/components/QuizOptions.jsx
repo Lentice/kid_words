@@ -15,7 +15,7 @@ export default function QuizOptions({ filterMode, setFilterMode, selected, setSe
             指定主題
           </label>
           {filterMode === 'sections' && (
-            <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{flex:'1', minWidth:'180px', maxWidth:'300px'}}>
+            <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{flex:'1', minWidth:'180px', maxWidth:'300px', marginLeft: 'auto', marginRight: 'auto'}}>
               <option value="">全部主題</option>
               {sections.map(s => (
                 <option key={s.id} value={s.id}>{s.number}. {s.name}</option>

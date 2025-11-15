@@ -56,14 +56,13 @@ export default function Quiz(){
     if (len <= 16) return '30px'
     return '24px'
   }
-  const rawPool = useMemo(()=>{
+  const pool = useMemo(()=>{
     if (filterMode === 'learned') {
       return words.filter(w=>learned.has(w.id))
     }
     // filterMode === 'sections'
     return selected.length === 0 ? words : bySections(selected)
   },[filterMode, selected, bySections, words, learned])
-  const pool = rawPool
 
   const qs = useRef(readQuizState())
   const [started, setStarted] = useState(false)
