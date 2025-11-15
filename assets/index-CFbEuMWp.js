@@ -24585,30 +24585,73 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
       return;
     }
     try {
+      let makeUtter2 = function(voice) {
+        const u2 = new SpeechSynthesisUtterance(text);
+        u2.lang = lang;
+        u2.rate = Number.isFinite(rate) ? rate : 0.95;
+        u2.pitch = Number.isFinite(pitch) ? pitch : 1;
+        u2.volume = 1;
+        if (voice) u2.voice = voice;
+        u2.onstart = () => {
+          if (playingCallback) playingCallback(true);
+        };
+        u2.onend = () => {
+          if (playingCallback) playingCallback(false);
+          resolve(true);
+        };
+        u2.onerror = (ev) => {
+          if (playingCallback) playingCallback(false);
+          reject(ev || new Error("SpeechSynthesis error"));
+        };
+        return u2;
+      }, pickVoice2 = function(requestedLang) {
+        const vs = window.speechSynthesis.getVoices() || [];
+        if (!vs.length) return null;
+        const exact = vs.find((v2) => v2.lang && v2.lang.toLowerCase() === requestedLang.toLowerCase());
+        if (exact) return exact;
+        const prefix = requestedLang.split("-")[0].toLowerCase();
+        return vs.find((v2) => v2.lang && v2.lang.toLowerCase().startsWith(prefix)) || null;
+      }, speakNow2 = function() {
+        try {
+          const v2 = pickVoice2(lang);
+          const utter = makeUtter2(v2);
+          window.speechSynthesis.speak(utter);
+        } catch (err) {
+          if (playingCallback) playingCallback(false);
+          reject(err);
+        }
+      };
+      var makeUtter = makeUtter2, pickVoice = pickVoice2, speakNow = speakNow2;
       console.log("Speaking via SpeechSynthesis:", text);
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = lang;
-      utter.rate = rate;
-      utter.pitch = pitch;
-      utter.onstart = () => {
-        if (playingCallback) playingCallback(true);
-      };
-      utter.onend = () => {
-        if (playingCallback) playingCallback(false);
-        resolve(true);
-      };
-      utter.onerror = (ev) => {
-        if (playingCallback) playingCallback(false);
-        reject(ev || new Error("SpeechSynthesis error"));
-      };
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length === 0) {
-        console.log("Waiting for voices to be loaded...");
-        window.speechSynthesis.onvoiceschanged = () => speak(text);
-        return;
+      const currentVoices = window.speechSynthesis.getVoices();
+      if (!currentVoices || currentVoices.length === 0) {
+        let done = false;
+        const handler = () => {
+          if (done) return;
+          done = true;
+          try {
+            speakNow2();
+          } catch (err) {
+            if (playingCallback) playingCallback(false);
+            reject(err);
+          }
+          window.speechSynthesis.removeEventListener("voiceschanged", handler);
+        };
+        window.speechSynthesis.addEventListener("voiceschanged", handler);
+        setTimeout(() => {
+          if (done) return;
+          done = true;
+          window.speechSynthesis.removeEventListener("voiceschanged", handler);
+          try {
+            speakNow2();
+          } catch (err) {
+            if (playingCallback) playingCallback(false);
+            reject(err);
+          }
+        }, 300);
+      } else {
+        speakNow2();
       }
-      window.speechSynthesis.speak(utter);
     } catch (err) {
       if (playingCallback) playingCallback(false);
       reject(err);
