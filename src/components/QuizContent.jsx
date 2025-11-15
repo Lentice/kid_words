@@ -85,7 +85,7 @@ export default function QuizContent({
                     opacity: isPlaying ? 0.6 : 1,
                     transform: isPlaying ? 'scale(1.1)' : 'scale(1)',
                     transition: 'all 0.2s ease',
-                    animation: isPlaying ? 'pulse 1s infinite' : 'none'
+                    animation: isPlaying ? 'pulse 1s infinite' : 'none',
                   }}
                 >
                   🔊
@@ -144,7 +144,8 @@ export default function QuizContent({
                       fontSize: dir === 'en2zh' ? '22px' : '24px',
                       textAlign: 'left',
                       transition: 'all 0.2s',
-                      position: 'relative'
+                      position: 'relative',
+                      color:'#212121', 
                     }}
                     onMouseEnter={(e) => {
                       if (!showWrong && !showCorrect) {

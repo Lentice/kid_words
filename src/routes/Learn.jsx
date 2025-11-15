@@ -38,12 +38,6 @@ export default function Learn(){
     }
   }, [words.length, sections.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const filtered = useMemo(()=>{
-    if (!selectedSection) return []
-    const list = bySections([selectedSection])
-    return list
-  },[bySections, selectedSection, words])
-
   useEffect(()=>{
     // if current index exceeds words length, reset to 0
     if (index >= words.length) setIndex(0)
@@ -69,7 +63,7 @@ export default function Learn(){
 
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
-  if (!filtered.length) return (
+  if (!words.length) return (
     <div className="stack" style={{maxWidth:900,width:'100%'}}>
       <SectionPicker sections={sections} selectedId={selectedSection} onChange={handleSectionChange} />
       <div className="panel">沒有符合的單字</div>
@@ -117,7 +111,7 @@ export default function Learn(){
                   <div
                     key={s.id}
                     onClick={() => {
-                      handleSectionChange(s.id, filtered, getProgress)
+                      handleSectionChange(s.id, words, getProgress)
                       setShowSectionMenu(false)
                     }}
                     style={{
