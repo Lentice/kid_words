@@ -89,8 +89,10 @@ export function speak(text, { lang = 'en-US', rate = 0.95, pitch = 1.0 } = {}) {
 // 快取最近 10 個音訊 (只儲存可重用的音訊 src 字串，不直接快取 Audio 物件)
 const audioCache = new Map();
 const MAX_CACHE_SIZE = 10;
+// 追蹤目前正在播放的 Audio，以便在播放新音訊前停止並清理
+let currentAudio = null;
 
-export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
+export function googleTTS(text, { lang = 'en', rate = 0.8, stopSpeech = true } = {}) {
   if (!text || String(text).trim() === '') {
     // 對空內容視為 no-op，讓呼叫方不用處理錯誤
     return Promise.resolve()
@@ -103,16 +105,41 @@ export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
   function playSrc(src, { onStart } = {}) {
     return new Promise((resolve, reject) => {
       try {
+        // stop and clean up previous audio if present
+        if (currentAudio) {
+          try {
+            currentAudio.onended = null;
+            currentAudio.onerror = null;
+            currentAudio.pause();
+            currentAudio.src = '';
+          } catch (e) {
+            // ignore cleanup errors
+          }
+          currentAudio = null;
+        }
+
         const a = new Audio(src);
+        currentAudio = a;
         a.preload = 'auto';
         a.crossOrigin = 'anonymous';
 
+        const cleanup = () => {
+          try {
+            a.onended = null;
+            a.onerror = null;
+            if (currentAudio === a) currentAudio = null;
+            a.src = '';
+          } catch (e) {}
+        };
+
         a.onended = () => {
           if (playingCallback) playingCallback(false);
-          resolve();
+          cleanup();
+          resolve(true);
         };
         a.onerror = (err) => {
           if (playingCallback) playingCallback(false);
+          cleanup();
           reject(err || new Error('Audio error'));
         };
 
@@ -121,7 +148,7 @@ export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
             if (playingCallback) playingCallback(true);
             if (typeof onStart === 'function') onStart();
           })
-          .catch((err) => reject(err));
+          .catch((err) => { cleanup(); reject(err); });
       } catch (err) {
         reject(err);
       }
@@ -141,6 +168,11 @@ export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
   // 否則建立 remote url 並播放，播放開始時加入快取
   console.log('Fetching new TTS audio for:', text);
   const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
+  // Optionally stop any ongoing SpeechSynthesis utterances before playing remote audio
+  if (stopSpeech && 'speechSynthesis' in window) {
+    try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+  }
+
   return playSrc(url, {
     onStart: () => {
       try {
