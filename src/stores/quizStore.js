@@ -37,7 +37,7 @@ export const useQuizStore = create((set, get) => ({
   selected: [],
   filterMode: 'learned', // learned | sections
   mode: 'mixed', // en2zh | zh2en | audio | mixed
-  answerType: 'mcq', // mcq | input
+  answerType: 'choice', // choice | input
 
   // Quiz state
   started: false,
@@ -101,7 +101,7 @@ export const useQuizStore = create((set, get) => ({
     setCorrect(null)
     setAnswered(false)
 
-    if (answerType === 'mcq') {
+    if (answerType === 'choice') {
       const distractors = sample(pool, 3, item.id)
       let opts
       if (direction === 'zh2en') {

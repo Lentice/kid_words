@@ -40,7 +40,7 @@ export default function QuizOptions({ filterMode, setFilterMode, selected, setSe
           <label className="row" style={{gap:8, alignItems:'center'}}>
             <span style={{color:'#666', fontSize:'14px'}}>作答</span>
             <select value={answerType} onChange={e=>setAnswerType(e.target.value)}>
-              <option value="mcq">選擇題</option>
+              <option value="choice">選擇題</option>
               <option value="input">填空題</option>
             </select>
           </label>

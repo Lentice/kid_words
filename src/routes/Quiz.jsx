@@ -38,11 +38,17 @@ export default function Quiz(){
   } = useQuizStore()
 
   // 根據單字長度動態調整字體大小
-  const getWordFontSize = (word) => {
-    const len = word.length
-    if (len <= 8) return '44px'
-    if (len <= 12) return '36px'
-    if (len <= 16) return '30px'
+  // 如果 word 有中文字，中文字一個字視為 2 個英文字符長度
+  const getWordFontSize = (word = '') => {
+    const cjkRe = /[\u3400-\u4DBF\u4E00-\u9FFF]/
+    let effectiveLen = 0
+    for (const ch of word) {
+      effectiveLen += cjkRe.test(ch) ? 2 : 1
+    }
+    console.log('effectiveLen', effectiveLen)
+    if (effectiveLen <= 8) return '44px'
+    if (effectiveLen <= 12) return '36px'
+    if (effectiveLen <= 16) return '30px'
     return '24px'
   }
   const pool = useMemo(()=>{

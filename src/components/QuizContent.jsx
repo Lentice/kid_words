@@ -67,14 +67,14 @@ export default function QuizContent({
               marginTop:8, 
               marginBottom:12, 
               textAlign:'center',
-              fontSize: dir==='en2zh' ? getWordFontSize(q.word) : '44px',
+              fontSize: getWordFontSize(dir==='en2zh' ? q.word : q.meaning_cht),
               lineHeight: '44px'
             }}>
               {dir==='en2zh' ? q.word : q.meaning_cht}
             </div>
           )}
 
-          {answerType === 'mcq' ? (
+          {answerType === 'choice' ? (
             <div className="stack" style={{gap:10}}>
               {options.map(opt => {
                 const isCorrectAnswer = opt === target;
