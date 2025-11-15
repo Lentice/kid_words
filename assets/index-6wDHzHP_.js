@@ -24661,7 +24661,7 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
 const audioCache = /* @__PURE__ */ new Map();
 const MAX_CACHE_SIZE = 10;
 let currentAudio = null;
-function googleTTS(text, { lang = "en", rate = 0.8, stopSpeech = false } = {}) {
+function googleTTS(text, { lang = "en", rate = 0.8, stopSpeech = true } = {}) {
   if (!text || String(text).trim() === "") {
     return Promise.resolve();
   }
