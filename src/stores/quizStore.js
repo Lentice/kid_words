@@ -83,8 +83,8 @@ export const useQuizStore = create((set, get) => ({
     writeQuizState(newState)
   },
 
-  makeQuestion: (pool, speakWithConfig) => {
-    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered } = get()
+  makeQuestion: (pool, speakWithConfig, allWords = pool) => {
+    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered, filterMode } = get()
     if (pool.length === 0) { setQ(null); return }
 
     const weights = pool.map(w => (quizState.wrongCounts[w.id] || 0) + 1)
@@ -102,7 +102,37 @@ export const useQuizStore = create((set, get) => ({
     setAnswered(false)
 
     if (answerType === 'choice') {
-      const distractors = sample(pool, 3, item.id)
+      let distractors
+      
+      // 如果是學過的單字模式且學過的單字少於10個，特殊處理
+      if (filterMode === 'learned' && pool.length < 10 && pool.length > 0) {
+        const usedIds = new Set([item.id])
+        const learnedDistractors = []
+        const otherDistractors = []
+        
+        // 先嘗試從學過的單字中選1個作為干擾項(不包含當前題目)
+        if (pool.length > 1) {
+          const learned = sample(pool, 1, item.id)
+          learnedDistractors.push(...learned)
+          learned.forEach(d => usedIds.add(d.id))
+        }
+        
+        // 從所有單字中選擇剩餘的干擾項，湊足3個
+        const needed = 3 - learnedDistractors.length
+        while (otherDistractors.length < needed && usedIds.size < allWords.length) {
+          const candidate = allWords[Math.floor(Math.random() * allWords.length)]
+          if (!usedIds.has(candidate.id)) {
+            usedIds.add(candidate.id)
+            otherDistractors.push(candidate)
+          }
+        }
+        
+        distractors = [...learnedDistractors, ...otherDistractors]
+      } else {
+        // 原本的邏輯：從pool中隨機選3個
+        distractors = sample(pool, 3, item.id)
+      }
+      
       let opts
       if (direction === 'zh2en') {
         opts = [item.word, ...distractors.map(d => d.word)]

@@ -59,7 +59,7 @@ export default function Quiz(){
     return selected.length === 0 ? words : bySections(selected)
   },[filterMode, selected, bySections, words, learned])
 
-  const start = () => { startQuiz(); makeQuestion(pool, speakWithConfig) }
+  const start = () => { startQuiz(); makeQuestion(pool, speakWithConfig, words) }
 
   const endQuiz = () => endQuizStore()
 
@@ -68,10 +68,10 @@ export default function Quiz(){
     checkAnswer()
   }
 
-  const next = () => makeQuestion(pool, speakWithConfig)
+  const next = () => makeQuestion(pool, speakWithConfig, words)
   const replayAudio = () => replayAudioStore(speakWithConfig)
 
-  useEffect(()=>{ if (started) makeQuestion(pool, speakWithConfig) }, [filterMode, selected, mode, answerType])
+  useEffect(()=>{ if (started) makeQuestion(pool, speakWithConfig, words) }, [filterMode, selected, mode, answerType])
 
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
@@ -109,7 +109,7 @@ export default function Quiz(){
         correct={correct}
         setSelectedOption={setSelectedOption}
         setCorrect={setCorrect}
-        makeQuestion={() => makeQuestion(pool, speakWithConfig)}
+        makeQuestion={() => makeQuestion(pool, speakWithConfig, words)}
         answerType={answerType}
         answer={answer}
         setAnswer={setAnswer}

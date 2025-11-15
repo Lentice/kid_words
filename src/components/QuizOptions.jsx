@@ -48,6 +48,11 @@ export default function QuizOptions({ filterMode, setFilterMode, selected, setSe
         <button className="btn" onClick={start} disabled={pool.length===0} style={{padding:'10px 24px', marginTop:'8px', marginBottom:'8px'}}>
           開始測驗 ({pool.length} 題)
         </button>
+        {filterMode === 'learned' && pool.length === 0 && (
+          <div style={{color:'#f44336', fontSize:'14px', textAlign:'center', padding:'8px', background:'#ffebee', borderRadius:'8px'}}>
+            ⚠️ 尚未學習任何單字，請先到學習頁面學習單字
+          </div>
+        )}
       </div>
     </div>
   );
