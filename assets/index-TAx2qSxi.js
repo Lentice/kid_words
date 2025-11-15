@@ -25203,6 +25203,12 @@ function Learn() {
   ] });
 }
 function QuizOptions({ filterMode, setFilterMode, selected, setSelected, sections: sections2, mode, setMode, answerType, setAnswerType, pool, start }) {
+  reactExports.useEffect(() => {
+    if (answerType === "input" && mode !== "zh2en") {
+      setMode("zh2en");
+    }
+  }, [answerType]);
+  const isInput = answerType === "input";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel stack", style: { gap: 20, fontSize: 18 }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 12 }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontWeight: "500", color: "#555" }, children: "📚 選擇題庫" }),
@@ -25229,21 +25235,22 @@ function QuizOptions({ filterMode, setFilterMode, selected, setSelected, section
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, alignItems: "center" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 16, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }, children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "18px" }, children: "題型" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), style: { color: "#666", fontSize: "18px" }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "audio", children: "聽音辨義" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "sentence", children: "例句聽力" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "18px" }, children: "作答" }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), style: { color: "#666", fontSize: "18px" }, children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "choice", children: "選擇題" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "input", children: "填空題" })
           ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "18px" }, children: "題型" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("select", { value: mode, onChange: (e) => setMode(e.target.value), style: { color: "#666", fontSize: "18px" }, disabled: isInput, children: isInput ? /* @__PURE__ */ jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }) }) : /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "audio", children: "聽音辨義" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "sentence", children: "例句聽力" })
+          ] }) }),
+          isInput && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { marginLeft: 8, color: "#999", fontSize: 14 }, children: "（填空題僅支援 中 ➜ 英）" })
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, style: { padding: "10px 24px", marginTop: "8px", marginBottom: "8px", fontSize: 18 }, children: [
@@ -25289,6 +25296,14 @@ function QuizContent({
       replayAudio();
     }
   }, [q2, dir]);
+  reactExports.useEffect(() => {
+    if (answerType === "input" && correct === true) {
+      const t2 = setTimeout(() => {
+        if (typeof makeQuestion === "function") makeQuestion();
+      }, 600);
+      return () => clearTimeout(t2);
+    }
+  }, [answerType, correct, makeQuestion]);
   if (!q2) return null;
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
     started && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
