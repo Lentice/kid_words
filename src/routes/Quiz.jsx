@@ -42,11 +42,17 @@ export default function Quiz(){
   const { words, sections, bySections, loading, error } = useWordData()
   const learned = getProgress().learnedIds
   const [selected, setSelected] = useState([])
-  const [learnedOnly, setLearnedOnly] = useState(false)
+  const [filterMode, setFilterMode] = useState('learned') // learned | sections
   const [mode, setMode] = useState('mixed') // en2zh | zh2en | audio | mixed
   const [answerType, setAnswerType] = useState('mcq') // mcq | input
-  const rawPool = useMemo(()=>bySections(selected),[bySections, selected, words])
-  const pool = useMemo(()=> learnedOnly ? rawPool.filter(w=>learned.has(w.id)) : rawPool, [rawPool, learnedOnly, learned])
+  const rawPool = useMemo(()=>{
+    if (filterMode === 'learned') {
+      return words.filter(w=>learned.has(w.id))
+    }
+    // filterMode === 'sections'
+    return selected.length === 0 ? words : bySections(selected)
+  },[filterMode, selected, bySections, words, learned])
+  const pool = rawPool
 
   const qs = useRef(readQuizState())
   const [started, setStarted] = useState(false)
@@ -138,7 +144,7 @@ export default function Quiz(){
   const next = () => makeQuestion()
   const replayAudio = () => { if (dir==='audio' && q) speakWithConfig(q.word) }
 
-  useEffect(()=>{ if (started) makeQuestion() }, [learnedOnly, selected, mode, answerType])
+  useEffect(()=>{ if (started) makeQuestion() }, [filterMode, selected, mode, answerType])
 
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
@@ -146,16 +152,38 @@ export default function Quiz(){
   return (
     <div className="stack" style={{gap:16,maxWidth:900,width:'100%'}}>
       {!started && (
-        <>
-          <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
-
-          <div className="panel row" style={{justifyContent:'space-between'}}>
-            <div className="row" style={{gap:12}}>
-              <label className="row" style={{gap:6}}>
-                <input type="checkbox" checked={learnedOnly} onChange={e=>setLearnedOnly(e.target.checked)} /> 只出已學過
+        <div className="panel stack" style={{gap:20}}>
+          {/* 題庫選擇區 */}
+          <div className="stack" style={{gap:12}}>
+            <div style={{fontSize:'16px', fontWeight:'600', color:'#333'}}>📚 題庫範圍</div>
+            <div className="row" style={{gap:16, alignItems:'center', flexWrap:'wrap'}}>
+              <label className="row" style={{gap:8, cursor:'pointer'}}>
+                <input type="radio" name="filter" checked={filterMode==='learned'} onChange={()=>setFilterMode('learned')} /> 
+                <span style={{fontSize:'15px'}}>只出已學過</span>
               </label>
-              <label className="row" style={{gap:6}}>
-                題型：
+              <label className="row" style={{gap:8, cursor:'pointer'}}>
+                <input type="radio" name="filter" checked={filterMode==='sections'} onChange={()=>setFilterMode('sections')} /> 
+                <span style={{fontSize:'15px'}}>指定主題</span>
+              </label>
+              {filterMode === 'sections' && (
+                <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{minWidth:'200px'}}>
+                  <option value="">全部主題</option>
+                  {sections.map(s => (
+                    <option key={s.id} value={s.id}>{s.number}. {s.name}</option>
+                  ))}
+                </select>
+              )}
+            </div>
+          </div>
+
+          <div style={{height:'1px', background:'#e0e0e0'}}></div>
+
+          {/* 測驗設定區 */}
+          <div className="stack" style={{gap:12}}>
+            <div style={{fontSize:'16px', fontWeight:'600', color:'#333'}}>⚙️ 測驗設定</div>
+            <div className="row" style={{justifyContent:'center', flexWrap:'wrap', gap:16, alignItems:'center'}}>
+              <label className="row" style={{gap:8, alignItems:'center'}}>
+                <span style={{fontSize:'15px', color:'#666'}}>題型：</span>
                 <select value={mode} onChange={e=>setMode(e.target.value)}>
                   <option value="mixed">混合</option>
                   <option value="en2zh">英 ➜ 中</option>
@@ -163,17 +191,25 @@ export default function Quiz(){
                   <option value="audio">聽音辨義</option>
                 </select>
               </label>
-              <label className="row" style={{gap:6}}>
-                作答：
+              <label className="row" style={{gap:8, alignItems:'center'}}>
+                <span style={{fontSize:'15px', color:'#666'}}>作答：</span>
                 <select value={answerType} onChange={e=>setAnswerType(e.target.value)}>
                   <option value="mcq">選擇題</option>
                   <option value="input">填空題</option>
                 </select>
               </label>
             </div>
-            <button className="btn" onClick={start} disabled={pool.length===0}>開始測驗（題庫：{pool.length}）</button>
           </div>
-        </>
+
+          <div style={{height:'1px', background:'#e0e0e0'}}></div>
+
+          {/* 開始按鈕區 */}
+          <div style={{textAlign:'center', paddingBottom:'8px'}}>
+            <button className="btn" onClick={start} disabled={pool.length===0} style={{fontSize:'16px', padding:'12px 32px', minWidth:'200px'}}>
+              🚀 開始測驗（題庫：{pool.length}）
+            </button>
+          </div>
+        </div>
       )}
 
       {started && (
