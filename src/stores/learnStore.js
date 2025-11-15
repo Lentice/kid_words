@@ -34,6 +34,20 @@ export const useLearnStore = create((set, get) => ({
     set({ sectionProgress })
   },
 
+  // Calculate progress for a single section and update only that entry
+  calculateSingleSectionProgress: (sectionId, bySections, learnedIds) => {
+    if (!sectionId || !bySections) return
+    const sectionWords = bySections([sectionId])
+    const learnedCount = sectionWords.filter(w => learnedIds.has(w.id)).length
+    const total = sectionWords.length
+    const percentage = total > 0 ? Math.round((learnedCount / total) * 100) : 0
+    set((state) => {
+      const sp = { ...(state.sectionProgress || {}) }
+      sp[sectionId] = { learned: learnedCount, total, percentage }
+      return { sectionProgress: sp }
+    })
+  },
+
   initializeFromProgress: (words, sections, bySections) => {
     const saved = getProgress()
     const learnedIds = saved.learnedIds || new Set()
@@ -75,25 +89,35 @@ export const useLearnStore = create((set, get) => ({
     set({ selectedSection: sectionId, index: newIndex })
   },
 
-  onPrev: (words) => {
-    set((state) => {
-      const ni = (state.index - 1 + words.length) % words.length
-      const wordId = words[ni]?.id
-      if (wordId) saveProgress({ lastWordId: wordId })
-      return { index: ni }
-    })
+  onPrev: (words, current, bySections) => {
+    if (!Array.isArray(words) || words.length === 0) return
+    const ni = (get().index - 1 + words.length) % words.length
+    const newWord = words[ni]
+    set({ index: ni })
+    if (newWord?.id) saveProgress({ lastWordId: newWord.id })
+    const affectedSection = current?.section_id
+    if (affectedSection && bySections) {
+      const { learnedIds } = get()
+      get().calculateSingleSectionProgress(affectedSection, bySections, learnedIds)
+    }
   },
 
-  onNext: (words) => {
-    set((state) => {
-      const ni = (state.index + 1) % words.length
-      const wordId = words[ni]?.id
-      if (wordId) saveProgress({ lastWordId: wordId })
-      return { index: ni }
-    })
+  onNext: (words, current, bySections) => {
+    if (!Array.isArray(words) || words.length === 0) return
+    const ni = (get().index + 1) % words.length
+    const newWord = words[ni]
+    set({ index: ni })
+    if (newWord?.id) saveProgress({ lastWordId: newWord.id })
+    const affectedSection = current?.section_id
+    if (affectedSection && bySections) {
+      const { learnedIds } = get()
+      get().calculateSingleSectionProgress(affectedSection, bySections, learnedIds)
+    }
   },
 
-  toggleLearned: (id, sections, bySections) => {
+  toggleLearned: (current, sections, bySections) => {
+    if (!current) return
+    const id = current.id
     set((state) => {
       const next = new Set(state.learnedIds)
       if (next.has(id)) next.delete(id)
@@ -101,10 +125,12 @@ export const useLearnStore = create((set, get) => ({
       saveProgress({ learnedIds: next })
       return { learnedIds: next }
     })
-    // Update section progress
+    // Update section progress (use current.section_id directly to avoid scanning)
     if (sections && bySections) {
       const { learnedIds } = get()
-      get().calculateSectionProgress(sections, bySections, learnedIds)
+      if (current && current.section_id) {
+        get().calculateSingleSectionProgress(current.section_id, bySections, learnedIds)
+      }
     }
   },
 
@@ -133,7 +159,9 @@ export const useLearnStore = create((set, get) => ({
     }
   },
 
-  onExampleClick: (id, sections, bySections) => {
+  onExampleClick: (current, sections, bySections) => {
+    if (!current) return
+    const id = current.id
     set({ exampleClickedId: id })
     // Auto mark as learned
     const wasAdded = !get().learnedIds.has(id)
@@ -146,10 +174,12 @@ export const useLearnStore = create((set, get) => ({
       }
       return state
     })
-    // Update section progress if a new word was learned
+    // Update section progress if a new word was learned (use current.section_id when possible)
     if (wasAdded && sections && bySections) {
       const { learnedIds } = get()
-      get().calculateSectionProgress(sections, bySections, learnedIds)
+      if (current && current.section_id) {
+        get().calculateSingleSectionProgress(current.section_id, bySections, learnedIds)
+      }
     }
   }
 }))

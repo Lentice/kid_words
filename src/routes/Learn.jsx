@@ -168,10 +168,10 @@ export default function Learn(){
       <Flashcard
         item={current}
         learned={learnedIds.has(current.id)}
-        onPrev={() => onPrev(words)}
-        onNext={() => onNext(words)}
-        onToggleLearned={()=>toggleLearned(current.id, sections, bySections)}
-        onExampleClick={()=>onExampleClick(current.id, sections, bySections)}
+        onPrev={() => onPrev(words, current, bySections)}
+        onNext={() => onNext(words, current, bySections)}
+        onToggleLearned={()=>toggleLearned(current, sections, bySections)}
+        onExampleClick={()=>onExampleClick(current, sections, bySections)}
       />
       <div className="row" style={{justifyContent:'space-between'}}>
         <div className="progress">已學會:{learnedIds.size} / {words.length}</div>
