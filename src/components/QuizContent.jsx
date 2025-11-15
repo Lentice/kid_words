@@ -44,19 +44,19 @@ export default function QuizContent({
             )}
           </div>
           {dir === 'audio' ? (
-            <div className="stack" style={{alignItems:'center', marginTop:16, marginBottom:24}}>
+            <div className="stack" style={{alignItems:'center', marginTop:6, marginBottom:6}}>
               <button 
                 className="btn accent" 
                 type="button" 
                 onClick={replayAudio}
                 style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
                   fontSize: '48px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  background: 'transparent',
+                  border: 'none',
+                  boxShadow: 'none'
                 }}
               >
                 🔊
@@ -99,7 +99,7 @@ export default function QuizContent({
                     }} 
                     type="button" 
                     style={{
-                      padding: '14px 20px',
+                      padding: '12px 20px',
                       paddingRight: showWrong ? '40px' : '20px',
                       border: `1.5px solid ${showWrong ? '#ffb3ba' : showCorrect ? '#4CAF50' : '#d0d0d0'}`,
                       borderRadius: '8px',

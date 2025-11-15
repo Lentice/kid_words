@@ -49,6 +49,7 @@ export const useQuizStore = create((set, get) => ({
   correct: null,
   count: 0,
   score: 0,
+  answered: false,
 
   // Persistent quiz state
   quizState: readQuizState(),
@@ -72,8 +73,9 @@ export const useQuizStore = create((set, get) => ({
   setAnswer: (answer) => set({ answer }),
   setSelectedOption: (selectedOption) => set({ selectedOption }),
   setCorrect: (correct) => set({ correct }),
-  setCount: (count) => set({ count }),
-  setScore: (score) => set({ score }),
+  setCount: (valueOrUpdater) => set(state => ({ count: typeof valueOrUpdater === 'function' ? valueOrUpdater(state.count) : valueOrUpdater })),
+  setScore: (valueOrUpdater) => set(state => ({ score: typeof valueOrUpdater === 'function' ? valueOrUpdater(state.score) : valueOrUpdater })),
+  setAnswered: (answered) => set({ answered }),
 
   updateQuizState: (updater) => {
     const newState = updater(get().quizState)
@@ -82,7 +84,7 @@ export const useQuizStore = create((set, get) => ({
   },
 
   makeQuestion: (pool, speakWithConfig) => {
-    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions } = get()
+    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered } = get()
     if (pool.length === 0) { setQ(null); return }
 
     const weights = pool.map(w => (quizState.wrongCounts[w.id] || 0) + 1)
@@ -97,6 +99,7 @@ export const useQuizStore = create((set, get) => ({
     setAnswer('')
     setSelectedOption(null)
     setCorrect(null)
+    setAnswered(false)
 
     if (answerType === 'mcq') {
       const distractors = sample(pool, 3, item.id)
@@ -127,7 +130,7 @@ export const useQuizStore = create((set, get) => ({
   },
 
   endQuiz: () => {
-    const { setStarted, setQ, setCount, setScore, setCorrect, setAnswer, setSelectedOption } = get()
+    const { setStarted, setQ, setCount, setScore, setCorrect, setAnswer, setSelectedOption, setAnswered } = get()
     setStarted(false)
     setQ(null)
     setCount(0)
@@ -135,17 +138,19 @@ export const useQuizStore = create((set, get) => ({
     setCorrect(null)
     setAnswer('')
     setSelectedOption(null)
+    setAnswered(false)
   },
 
   checkAnswer: () => {
-    const { q, dir, answer, setCorrect, setCount, setScore, updateQuizState } = get()
-    if (!q) return
+    const { q, dir, answer, setCorrect, setCount, setScore, updateQuizState, answered, setAnswered } = get()
+    if (!q || answered) return
     const normalize = (s) => s.trim().toLowerCase()
     const user = normalize(answer)
     const target = normalize(dir === 'zh2en' ? q.word : q.meaning_cht)
     const ok = user === target
     setCorrect(ok)
     setCount(prev => prev + 1)
+    setAnswered(true)
     if (ok) {
       setScore(prev => prev + 1)
     }
@@ -165,24 +170,30 @@ export const useQuizStore = create((set, get) => ({
   },
 
   selectOption: (opt, target) => {
-    const { setSelectedOption, setCorrect, setCount, setScore, updateQuizState, q } = get()
+    const { setSelectedOption, setCorrect, setCount, setScore, updateQuizState, q, answered, setAnswered } = get()
     setSelectedOption(opt)
     const ok = opt === target
-    if (ok) {
-      setCorrect(true)
+    if (!answered) {
+      // first attempt: count increases and answered is locked
       setCount(prev => prev + 1)
-      setScore(prev => prev + 1)
-      updateQuizState(cur => {
-        if (cur.wrongCounts[q.id] > 0) cur.wrongCounts[q.id] -= 1
-        return cur
-      })
+      setAnswered(true)
+      if (ok) {
+        setCorrect(true)
+        setScore(prev => prev + 1)
+        updateQuizState(cur => {
+          if (cur.wrongCounts[q.id] > 0) cur.wrongCounts[q.id] -= 1
+          return cur
+        })
+      } else {
+        setCorrect(false)
+        updateQuizState(cur => {
+          cur.wrongCounts[q.id] = (cur.wrongCounts[q.id] || 0) + 1
+          return cur
+        })
+      }
     } else {
-      setCorrect(false)
-      setCount(prev => prev + 1)
-      updateQuizState(cur => {
-        cur.wrongCounts[q.id] = (cur.wrongCounts[q.id] || 0) + 1
-        return cur
-      })
+      // already answered: only update visual correctness, do not change score/count
+      setCorrect(ok)
     }
     return ok
   }
