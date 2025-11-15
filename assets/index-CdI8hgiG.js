@@ -24604,9 +24604,11 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
       };
       const voices = window.speechSynthesis.getVoices();
       if (voices.length === 0) {
+        console.log("Waiting for voices to be loaded...");
         window.speechSynthesis.onvoiceschanged = () => speak(text);
         return;
       }
+      window.speechSynthesis.speak(utter);
     } catch (err) {
       if (playingCallback) playingCallback(false);
       reject(err);
