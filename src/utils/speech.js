@@ -1,6 +1,13 @@
 // 使用瀏覽器內建的 SpeechSynthesis API
 // 針對單字和例句使用不同的發音設定
 
+// 播放狀態管理
+let playingCallback = null;
+
+export function onPlayingChange(callback) {
+  playingCallback = callback;
+}
+
 // 用於單字發音 - 快速簡潔
 export function speak(text, { lang = 'en-US', rate = 0.95, pitch = 1.0 } = {}) {
   if (!('speechSynthesis' in window)) {
@@ -13,9 +20,22 @@ export function speak(text, { lang = 'en-US', rate = 0.95, pitch = 1.0 } = {}) {
     utter.lang = lang
     utter.rate = rate
     utter.pitch = pitch
+    
+    // 添加播放狀態追蹤
+    utter.onstart = () => {
+      if (playingCallback) playingCallback(true);
+    };
+    utter.onend = () => {
+      if (playingCallback) playingCallback(false);
+    };
+    utter.onerror = () => {
+      if (playingCallback) playingCallback(false);
+    };
+    
     window.speechSynthesis.speak(utter)
     return true
   } catch {
+    if (playingCallback) playingCallback(false);
     return false
   }
 }
@@ -33,12 +53,20 @@ export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
       const cachedAudio = audioCache.get(cacheKey);
       // 重置音訊到開頭並播放
       cachedAudio.currentTime = 0;
-      cachedAudio.onended = () => resolve();
+      cachedAudio.onended = () => {
+        if (playingCallback) playingCallback(false);
+        resolve();
+      };
       cachedAudio.onerror = (err) => {
+        if (playingCallback) playingCallback(false);
         console.log("Audio play error:", err);
         reject(err);
       };
-      cachedAudio.play().catch(reject);
+      cachedAudio.play()
+        .then(() => {
+          if (playingCallback) playingCallback(true);
+        })
+        .catch(reject);
       return;
     }
     
@@ -46,14 +74,19 @@ export function googleTTS(text, { lang = 'en', rate = 0.8 } = {}) {
     const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
     const audio = new Audio(url);
     
-    audio.onended = () => resolve();
+    audio.onended = () => {
+      if (playingCallback) playingCallback(false);
+      resolve();
+    };
     audio.onerror = (err) => {
+      if (playingCallback) playingCallback(false);
       console.log("Audio play error:", err);
       reject(err);
     };
     
     audio.play()
       .then(() => {
+        if (playingCallback) playingCallback(true);
         // 播放成功後加入快取
         if (audioCache.size >= MAX_CACHE_SIZE) {
           // 刪除最舊的項目（Map 的第一個鍵）

@@ -43,6 +43,7 @@ export const useQuizStore = create((set, get) => ({
   started: false,
   q: null,
   dir: 'en2zh',
+  currentSentence: '', // 當前使用的例句
   options: [],
   answer: '',
   selectedOption: null,
@@ -69,6 +70,7 @@ export const useQuizStore = create((set, get) => ({
   setStarted: (started) => set({ started }),
   setQ: (q) => set({ q }),
   setDir: (dir) => set({ dir }),
+  setCurrentSentence: (currentSentence) => set({ currentSentence }),
   setOptions: (options) => set({ options }),
   setAnswer: (answer) => set({ answer }),
   setSelectedOption: (selectedOption) => set({ selectedOption }),
@@ -83,8 +85,8 @@ export const useQuizStore = create((set, get) => ({
     writeQuizState(newState)
   },
 
-  makeQuestion: (pool, speakWithConfig, allWords = pool) => {
-    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered, filterMode } = get()
+  makeQuestion: (pool, speakWord, speakSentence, allWords = pool) => {
+    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered, setCurrentSentence, filterMode } = get()
     if (pool.length === 0) { setQ(null); return }
 
     const weights = pool.map(w => (quizState.wrongCounts[w.id] || 0) + 1)
@@ -100,6 +102,14 @@ export const useQuizStore = create((set, get) => ({
     setSelectedOption(null)
     setCorrect(null)
     setAnswered(false)
+    
+    // 如果是例句模式，預先選擇並保存例句
+    if (direction === 'sentence') {
+      const sentenceText = Math.random() < 0.5 ? item.sentence1 : item.sentence2
+      setCurrentSentence(sentenceText)
+    } else {
+      setCurrentSentence('')
+    }
 
     if (answerType === 'choice') {
       let distractors
@@ -149,12 +159,12 @@ export const useQuizStore = create((set, get) => ({
     }
 
     if (direction === 'audio') {
-      setTimeout(() => speakWithConfig(item.word), 50)
+      setTimeout(() => speakWord(item.word), 50)
     }
     if (direction === 'sentence') {
-      // 隨機選擇例句1或例句2
-      const sentenceText = Math.random() < 0.5 ? item.sentence1 : item.sentence2
-      setTimeout(() => speakWithConfig(sentenceText), 50)
+      // 使用已保存的例句
+      const { currentSentence } = get()
+      setTimeout(() => speakSentence(currentSentence), 50)
     }
   },
 
@@ -199,12 +209,11 @@ export const useQuizStore = create((set, get) => ({
     })
   },
 
-  replayAudio: (speakWithConfig) => {
-    const { dir, q } = get()
-    if (dir === 'audio' && q) speakWithConfig(q.word)
-    if (dir === 'sentence' && q) {
-      const sentenceText = Math.random() < 0.5 ? q.sentence1 : q.sentence2
-      speakWithConfig(sentenceText)
+  replayAudio: (speakWord, speakSentence) => {
+    const { dir, q, currentSentence } = get()
+    if (dir === 'audio' && q) speakWord(q.word)
+    if (dir === 'sentence' && currentSentence) {
+      speakSentence(currentSentence)
     }
   },
 

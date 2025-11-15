@@ -1,4 +1,7 @@
 
+import { useEffect, useState } from 'react';
+import { onPlayingChange } from '../utils/speech';
+
 export default function QuizContent({
   started,
   accuracy,
@@ -23,6 +26,21 @@ export default function QuizContent({
   selectOption,
   target
 }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // 註冊播放狀態監聽
+  useEffect(() => {
+    onPlayingChange(setIsPlaying);
+    return () => onPlayingChange(null);
+  }, []);
+
+  // 當題目是 audio 或 sentence 時自動播放一次
+  useEffect(() => {
+    if (q && (dir === 'audio' || dir === 'sentence')) {
+      replayAudio();
+    }
+  }, [q, dir]);
+
   if (!q) return null;
   return (
     <>
@@ -34,53 +52,66 @@ export default function QuizContent({
       )}
 
       {started && q && (
-        <div className="card quiz-card">
-          <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
-            <span className="chip">{dir==='sentence' ? '例句聽力' : (dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英'))}</span>
-            {dir === 'audio' && (
-              <div style={{fontSize:'14px', color:'#555'}}>
-                請聽音選擇中文意思
+        <div className="card quiz-card" style={{display: 'flex', flexDirection: 'column'}}>
+          <div>
+            <div className="row" style={{justifyContent:'space-between', alignItems:'center'}}>
+              <span className="chip">{dir==='sentence' ? '例句聽力' : (dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英'))}</span>
+              {dir === 'audio' && (
+                <div style={{fontSize:'14px', color:'#555'}}>
+                  請聽音選擇中文意思
+                </div>
+              )}
+              {dir === 'sentence' && (
+                <div style={{fontSize:'14px', color:'#555'}}>
+                  請聽例句並選出出現過的單字
+                </div>
+              )}
+            </div>
+            {(dir === 'audio' || dir === 'sentence') ? (
+              <div className="stack" style={{alignItems:'center', marginTop:6, marginBottom:6}}>
+                <button 
+                  className="btn accent" 
+                  type="button" 
+                  onClick={replayAudio}
+                  style={{
+                    fontSize: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    borderRadius: '10%',
+                    boxShadow: 'none',
+                    opacity: isPlaying ? 0.6 : 1,
+                    transform: isPlaying ? 'scale(1.1)' : 'scale(1)',
+                    transition: 'all 0.2s ease',
+                    animation: isPlaying ? 'pulse 1s infinite' : 'none'
+                  }}
+                >
+                  🔊
+                </button>
+                <style>{`
+                  @keyframes pulse {
+                    0%, 100% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                  }
+                `}</style>
               </div>
-            )}
-            {dir === 'sentence' && (
-              <div style={{fontSize:'14px', color:'#555'}}>
-                請聽例句並選出出現過的單字
+            ) : (
+              <div className="question" style={{
+                marginTop:8, 
+                marginBottom:12, 
+                textAlign:'center',
+                fontSize: getWordFontSize(dir==='en2zh' ? q.word : q.meaning_cht),
+                lineHeight: '44px'
+              }}>
+                {dir==='en2zh' ? q.word : q.meaning_cht}
               </div>
             )}
           </div>
-          {(dir === 'audio' || dir === 'sentence') ? (
-            <div className="stack" style={{alignItems:'center', marginTop:6, marginBottom:6}}>
-              <button 
-                className="btn accent" 
-                type="button" 
-                onClick={replayAudio}
-                style={{
-                  fontSize: '48px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'transparent',
-                  border: 'none',
-                  boxShadow: 'none'
-                }}
-              >
-                🔊
-              </button>
-            </div>
-          ) : (
-            <div className="question" style={{
-              marginTop:8, 
-              marginBottom:12, 
-              textAlign:'center',
-              fontSize: getWordFontSize(dir==='en2zh' ? q.word : q.meaning_cht),
-              lineHeight: '44px'
-            }}>
-              {dir==='en2zh' ? q.word : q.meaning_cht}
-            </div>
-          )}
 
           {answerType === 'choice' ? (
-            <div className="stack" style={{gap:10}}>
+            <div className="stack" style={{gap:10, marginTop: 'auto'}}>
               {options.map(opt => {
                 const isCorrectAnswer = opt === target;
                 const isSelected = selectedOption === opt;

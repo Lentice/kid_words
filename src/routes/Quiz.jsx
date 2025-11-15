@@ -3,12 +3,17 @@ import useWordData from '../hooks/useWordData'
 import QuizOptions from '../components/QuizOptions'
 import QuizContent from '../components/QuizContent'
 import { getProgress } from '../utils/progress'
-import { speak } from '../utils/speech'
+import { speak, googleTTS } from '../utils/speech'
 import { useQuizStore } from '../stores/quizStore'
 
-function speakWithConfig(text) {
+function speakWord(text) {
   const { wordSpeed } = getProgress()
   speak(text, { rate: wordSpeed })
+}
+
+function speakSentence(text) {
+  const { exampleSpeed } = getProgress()
+  googleTTS(text, { lang: 'en', rate: exampleSpeed })
 }
 
 export default function Quiz(){
@@ -45,7 +50,7 @@ export default function Quiz(){
     for (const ch of word) {
       effectiveLen += cjkRe.test(ch) ? 2 : 1
     }
-    console.log('effectiveLen', effectiveLen)
+
     if (effectiveLen <= 8) return '44px'
     if (effectiveLen <= 12) return '36px'
     if (effectiveLen <= 16) return '30px'
@@ -59,7 +64,7 @@ export default function Quiz(){
     return selected.length === 0 ? words : bySections(selected)
   },[filterMode, selected, bySections, words, learned])
 
-  const start = () => { startQuiz(); makeQuestion(pool, speakWithConfig, words) }
+  const start = () => { startQuiz(); makeQuestion(pool, speakWord, speakSentence, words) }
 
   const endQuiz = () => endQuizStore()
 
@@ -68,10 +73,10 @@ export default function Quiz(){
     checkAnswer()
   }
 
-  const next = () => makeQuestion(pool, speakWithConfig, words)
-  const replayAudio = () => replayAudioStore(speakWithConfig)
+  const next = () => makeQuestion(pool, speakWord, speakSentence, words)
+  const replayAudio = () => replayAudioStore(speakWord, speakSentence)
 
-  useEffect(()=>{ if (started) makeQuestion(pool, speakWithConfig, words) }, [filterMode, selected, mode, answerType])
+  useEffect(()=>{ if (started) makeQuestion(pool, speakWord, speakSentence, words) }, [filterMode, selected, mode, answerType])
 
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
@@ -109,7 +114,7 @@ export default function Quiz(){
         correct={correct}
         setSelectedOption={setSelectedOption}
         setCorrect={setCorrect}
-        makeQuestion={() => makeQuestion(pool, speakWithConfig, words)}
+        makeQuestion={() => makeQuestion(pool, speakWord, speakSentence, words)}
         answerType={answerType}
         answer={answer}
         setAnswer={setAnswer}
