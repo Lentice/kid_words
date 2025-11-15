@@ -19,29 +19,69 @@ export function speak(text, { lang = 'en-US', rate = 0.95, pitch = 1.0 } = {}) {
     }
     try {
       console.log('Speaking via SpeechSynthesis:', text);
-      window.speechSynthesis.cancel()
-      const utter = new SpeechSynthesisUtterance(text)
-      utter.lang = lang
-      utter.rate = rate
-      utter.pitch = pitch
 
-      // 添加播放狀態追蹤
-      utter.onstart = () => {
-        if (playingCallback) playingCallback(true);
-      };
-      utter.onend = () => {
-        if (playingCallback) playingCallback(false);
-        resolve(true)
-      };
-      utter.onerror = (ev) => {
-        if (playingCallback) playingCallback(false);
-        reject(ev || new Error('SpeechSynthesis error'))
-      };
+      // Build utterance with provided options
+      function makeUtter(voice) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = lang;
+        u.rate = Number.isFinite(rate) ? rate : 0.95;
+        u.pitch = Number.isFinite(pitch) ? pitch : 1.0;
+        u.volume = 1.0;
+        if (voice) u.voice = voice;
 
-      window.speechSynthesis.speak(utter)
+        u.onstart = () => { if (playingCallback) playingCallback(true); };
+        u.onend = () => { if (playingCallback) playingCallback(false); resolve(true); };
+        u.onerror = (ev) => { if (playingCallback) playingCallback(false); reject(ev || new Error('SpeechSynthesis error')); };
+        return u;
+      }
+
+      // pick a voice matching lang (exact or prefix)
+      function pickVoice(requestedLang) {
+        const vs = window.speechSynthesis.getVoices() || [];
+        if (!vs.length) return null;
+        const exact = vs.find(v => v.lang && v.lang.toLowerCase() === requestedLang.toLowerCase());
+        if (exact) return exact;
+        const prefix = requestedLang.split('-')[0].toLowerCase();
+        return vs.find(v => v.lang && v.lang.toLowerCase().startsWith(prefix)) || null;
+      }
+
+      // speak now with optional voice
+      function speakNow() {
+        try {
+          const v = pickVoice(lang);
+          const utter = makeUtter(v);
+          window.speechSynthesis.speak(utter);
+        } catch (err) {
+          if (playingCallback) playingCallback(false);
+          reject(err);
+        }
+      }
+
+      // If voices are not yet loaded, wait once for voiceschanged, otherwise speak immediately
+      const currentVoices = window.speechSynthesis.getVoices();
+      if (!currentVoices || currentVoices.length === 0) {
+        let done = false;
+        const handler = () => {
+          if (done) return;
+          done = true;
+          try { speakNow(); } catch (err) { if (playingCallback) playingCallback(false); reject(err); }
+          window.speechSynthesis.removeEventListener('voiceschanged', handler);
+        };
+        // use addEventListener to avoid overwriting other handlers
+        window.speechSynthesis.addEventListener('voiceschanged', handler);
+        // fallback: if voiceschanged never fires, try after a short timeout
+        setTimeout(() => {
+          if (done) return;
+          done = true;
+          window.speechSynthesis.removeEventListener('voiceschanged', handler);
+          try { speakNow(); } catch (err) { if (playingCallback) playingCallback(false); reject(err); }
+        }, 300);
+      } else {
+        speakNow();
+      }
     } catch (err) {
       if (playingCallback) playingCallback(false);
-      reject(err)
+      reject(err);
     }
   })
 }
