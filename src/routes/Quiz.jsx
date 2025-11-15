@@ -45,6 +45,15 @@ export default function Quiz(){
   const [filterMode, setFilterMode] = useState('learned') // learned | sections
   const [mode, setMode] = useState('mixed') // en2zh | zh2en | audio | mixed
   const [answerType, setAnswerType] = useState('mcq') // mcq | input
+
+  // 根據單字長度動態調整字體大小
+  const getWordFontSize = (word) => {
+    const len = word.length
+    if (len <= 8) return '44px'
+    if (len <= 12) return '36px'
+    if (len <= 16) return '30px'
+    return '24px'
+  }
   const rawPool = useMemo(()=>{
     if (filterMode === 'learned') {
       return words.filter(w=>learned.has(w.id))
@@ -139,6 +148,11 @@ export default function Quiz(){
     if (!ok){ cur.wrongCounts[q.id] = (cur.wrongCounts[q.id]||0) + 1 }
     else if (cur.wrongCounts[q.id] > 0){ cur.wrongCounts[q.id] -= 1 }
     writeQuizState(cur)
+    
+    // 選擇題答對自動下一題
+    if (answerType === 'mcq' && ok) {
+      setTimeout(() => makeQuestion(), 800)
+    }
   }
 
   const next = () => makeQuestion()
@@ -215,7 +229,13 @@ export default function Quiz(){
           <div className="row" style={{justifyContent:'space-between'}}>
             <span className="chip">{dir==='audio' ? '聽音 ➜ 中' : (dir==='en2zh' ? '英 ➜ 中' : '中 ➜ 英')}</span>
           </div>
-          <div className="question" style={{marginTop:8, marginBottom:12}}>
+          <div className="question" style={{
+            marginTop:8, 
+            marginBottom:12, 
+            textAlign:'center',
+            fontSize: dir==='en2zh' ? getWordFontSize(q.word) : '44px',
+            lineHeight: '44px'
+          }}>
             {dir==='en2zh' ? q.word : dir==='zh2en' ? q.meaning_cht : '請聽音選擇中文意思'}
           </div>
 
@@ -227,17 +247,79 @@ export default function Quiz(){
 
           {answerType === 'mcq' ? (
             <div className="stack" style={{gap:10}}>
-              <div className="row" style={{flexWrap:'wrap', gap:8}}>
-                {options.map(opt => (
-                  <button key={opt} className={`btn ${selectedOption===opt? 'secondary':''}`} onClick={()=>setSelectedOption(opt)} type="button" style={{minWidth:120}}>
+              {options.map(opt => {
+                const target = (dir==='zh2en') ? q.word : q.meaning_cht
+                const isCorrectAnswer = opt === target
+                const isSelected = selectedOption === opt
+                const showWrong = isSelected && correct === false
+                const showCorrect = isSelected && correct === true
+                
+                return (
+                  <button 
+                    key={opt} 
+                    onClick={()=>{
+                      // 如果已經答錯過且當前顯示錯誤提示，允許重新選擇
+                      if (showWrong) {
+                        setCorrect(null)
+                        setSelectedOption(null)
+                        return
+                      }
+                      
+                      setSelectedOption(opt)
+                      const ok = opt === target
+                      
+                      if (ok) {
+                        // 答對
+                        setCorrect(true)
+                        setCount(c=>c+1)
+                        setScore(s=>s+1)
+                        const cur = qs.current
+                        if (cur.wrongCounts[q.id] > 0) cur.wrongCounts[q.id] -= 1
+                        writeQuizState(cur)
+                        setTimeout(() => makeQuestion(), 800)
+                      } else {
+                        // 答錯，顯示提示並停留在原題
+                        setCorrect(false)
+                        const cur = qs.current
+                        if (!cur.wrongCounts[q.id]) {
+                          // 只在第一次答錯時計數
+                          setCount(c=>c+1)
+                          cur.wrongCounts[q.id] = 1
+                          writeQuizState(cur)
+                        }
+                      }
+                    }} 
+                    type="button" 
+                    style={{
+                      padding: '14px 20px',
+                      paddingRight: showWrong ? '40px' : '20px',
+                      border: `1.5px solid ${showWrong ? '#ffb3ba' : showCorrect ? '#4CAF50' : '#d0d0d0'}`,
+                      borderRadius: '8px',
+                      background: showWrong ? '#fff5f5' : showCorrect ? '#e8f5e9' : 'transparent',
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      textAlign: 'left',
+                      transition: 'all 0.2s',
+                      position: 'relative'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!showWrong && !showCorrect) {
+                        e.target.style.borderColor = '#4A90E2'
+                        e.target.style.background = '#f8f9fa'
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!showWrong && !showCorrect) {
+                        e.target.style.borderColor = '#d0d0d0'
+                        e.target.style.background = 'transparent'
+                      }
+                    }}
+                  >
                     {opt}
+                    {showWrong && <span style={{position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', fontSize: '20px', color: '#ff6b6b'}}>✗</span>}
                   </button>
-                ))}
-              </div>
-              <div className="row" style={{gap:8}}>
-                <button className="btn" onClick={check}>送出</button>
-                <button className="btn secondary" type="button" onClick={next}>跳過/下一題</button>
-              </div>
+                )
+              })}
             </div>
           ) : (
             <form onSubmit={check} className="stack" style={{gap:12}}>
@@ -254,7 +336,7 @@ export default function Quiz(){
             </form>
           )}
 
-          {correct != null && (
+          {correct != null && answerType === 'input' && (
             <div style={{marginTop:10}}>
               {correct ? (
                 <span className="badge">答對了！</span>
