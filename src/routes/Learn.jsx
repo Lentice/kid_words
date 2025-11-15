@@ -8,7 +8,6 @@ import { useLearnStore } from '../stores/learnStore'
 export default function Learn(){
   const { words, sections, sectionMap, bySections, loading, error } = useWordData()
   const {
-    selectedSection,
     learnedIds,
     sectionProgress,
     exampleClickedId,
@@ -46,6 +45,10 @@ export default function Learn(){
   const current = words[index] || null
   const pos = `${index+1} / ${words.length}`
 
+  // Derive selectedSection from the currently shown word
+  const section_id = current?.section_id ?? (sections[0]?.id ?? null)
+  const currentSection = section_id ? sectionMap[section_id] : null
+
   useEffect(()=>{
     setExampleClickedId(null)
   },[current?.id, setExampleClickedId])
@@ -65,7 +68,7 @@ export default function Learn(){
   if (error) return <div>載入資料時發生錯誤</div>
   if (!words.length) return (
     <div className="stack" style={{maxWidth:900,width:'100%'}}>
-      <SectionPicker sections={sections} selectedId={selectedSection} onChange={handleSectionChange} />
+      <SectionPicker sections={sections} selectedId={section_id} onChange={handleSectionChange} />
       <div className="panel">沒有符合的單字</div>
     </div>
   )
@@ -80,10 +83,10 @@ export default function Learn(){
             style={{cursor: 'pointer', userSelect: 'none'}}
             title="點擊選擇類別"
           >
-            {sectionMap[current.section_id] ? (
+            {currentSection ? (
               <>
-                {sectionMap[current.section_id].number}. {sectionMap[current.section_id].name}
-                <span style={{fontWeight: 'bold', color: '#4A90E2', marginLeft: '12px'}}>{(sectionProgress[current.section_id]?.percentage || 0)}%</span>
+                {currentSection.number}. {currentSection.name}
+                <span style={{fontWeight: 'bold', color: '#4A90E2', marginLeft: '12px'}}>{(sectionProgress[section_id]?.percentage || 0)}%</span>
               </>
             ) : 'Section'}
           </span>
@@ -117,15 +120,15 @@ export default function Learn(){
                     style={{
                       padding: '12px 16px',
                       cursor: 'pointer',
-                      background: s.id === selectedSection ? '#E3F2FD' : 'white',
-                      fontWeight: s.id === selectedSection ? 'bold' : 'normal',
+                      background: s.id === section_id ? '#E3F2FD' : 'white',
+                      fontWeight: s.id === section_id ? 'bold' : 'normal',
                       borderBottom: '1px solid #eee',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center'
                     }}
                     onMouseEnter={(e) => e.target.style.background = '#F5F5F5'}
-                    onMouseLeave={(e) => e.target.style.background = s.id === selectedSection ? '#E3F2FD' : 'white'}
+                    onMouseLeave={(e) => e.target.style.background = s.id === section_id ? '#E3F2FD' : 'white'}
                   >
                     <span>{s.number}. {s.name}</span>
                     <span style={{fontWeight: 'bold', color: '#4A90E2', marginLeft: '16px'}}>{progress.percentage}%</span>

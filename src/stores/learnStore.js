@@ -3,7 +3,6 @@ import { getProgress, saveProgress } from '../utils/progress'
 
 export const useLearnStore = create((set, get) => ({
   // State
-  selectedSection: null,
   learnedIds: new Set(),
   sectionProgress: {}, // { sectionId: { learned: number, total: number, percentage: number } }
   exampleClickedId: null,
@@ -13,7 +12,6 @@ export const useLearnStore = create((set, get) => ({
   index: 0,
 
   // Actions
-  setSelectedSection: (selectedSection) => set({ selectedSection }),
   setLearnedIds: (learnedIds) => set({ learnedIds }),
   setSectionProgress: (sectionProgress) => set({ sectionProgress }),
   setExampleClickedId: (exampleClickedId) => set({ exampleClickedId }),
@@ -52,13 +50,11 @@ export const useLearnStore = create((set, get) => ({
     const saved = getProgress()
     const learnedIds = saved.learnedIds || new Set()
 
-    // Find initial section
-    let initialSection = null
+    // Find initial index from saved progress (lastWordId)
+    let initialIndex = 0
     if (saved.lastWordId && words.length > 0) {
-      const lastWord = words.find(w => w.id === saved.lastWordId)
-      initialSection = lastWord ? lastWord.section_id : (sections.length > 0 ? sections[0].id : null)
-    } else {
-      initialSection = sections.length > 0 ? sections[0].id : null
+      const idx = words.findIndex(w => w.id === saved.lastWordId)
+      initialIndex = idx >= 0 ? idx : 0
     }
 
     // Calculate initial section progress
@@ -73,7 +69,7 @@ export const useLearnStore = create((set, get) => ({
       })
     }
 
-    set({ selectedSection: initialSection, learnedIds, sectionProgress })
+    set({ learnedIds, sectionProgress, index: initialIndex })
   },
 
   handleSectionChange: (sectionId, words, getProgress) => {
@@ -86,7 +82,7 @@ export const useLearnStore = create((set, get) => ({
     }
     const firstWordId = words && words[newIndex]?.id ? words[newIndex].id : null
     if (firstWordId) saveProgress({ lastWordId: firstWordId })
-    set({ selectedSection: sectionId, index: newIndex })
+    set({ index: newIndex })
   },
 
   onPrev: (words, current, bySections) => {
