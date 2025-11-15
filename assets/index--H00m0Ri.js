@@ -25380,7 +25380,8 @@ function QuizContent({
               fontSize: dir === "en2zh" ? "22px" : "24px",
               textAlign: "left",
               transition: "all 0.2s",
-              position: "relative"
+              position: "relative",
+              color: "#212121"
             },
             onMouseEnter: (e) => {
               if (!showWrong && !showCorrect) {
