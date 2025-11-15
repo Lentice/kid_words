@@ -24573,16 +24573,34 @@ function useWordData() {
   };
   return { words: words$1, sections: sections$1, parts, sectionMap, posMap, bySections, loading, error };
 }
+let playingCallback = null;
+function onPlayingChange(callback) {
+  playingCallback = callback;
+}
 function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
+  if (!("speechSynthesis" in window)) {
+    console.warn("Speech Synthesis not supported in this browser");
+    return false;
+  }
   try {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = lang;
     utter.rate = rate;
     utter.pitch = pitch;
+    utter.onstart = () => {
+      if (playingCallback) playingCallback(true);
+    };
+    utter.onend = () => {
+      if (playingCallback) playingCallback(false);
+    };
+    utter.onerror = () => {
+      if (playingCallback) playingCallback(false);
+    };
     window.speechSynthesis.speak(utter);
     return true;
   } catch {
+    if (playingCallback) playingCallback(false);
     return false;
   }
 }
@@ -24594,22 +24612,33 @@ function googleTTS(text, { lang = "en", rate = 0.8 } = {}) {
     if (audioCache.has(cacheKey)) {
       const cachedAudio = audioCache.get(cacheKey);
       cachedAudio.currentTime = 0;
-      cachedAudio.onended = () => resolve();
+      cachedAudio.onended = () => {
+        if (playingCallback) playingCallback(false);
+        resolve();
+      };
       cachedAudio.onerror = (err) => {
+        if (playingCallback) playingCallback(false);
         console.log("Audio play error:", err);
         reject(err);
       };
-      cachedAudio.play().catch(reject);
+      cachedAudio.play().then(() => {
+        if (playingCallback) playingCallback(true);
+      }).catch(reject);
       return;
     }
     const url = `https://google-tss.lentice.workers.dev/?text=${encodeURIComponent(text)}&lang=${lang}&speed=${rate}`;
     const audio = new Audio(url);
-    audio.onended = () => resolve();
+    audio.onended = () => {
+      if (playingCallback) playingCallback(false);
+      resolve();
+    };
     audio.onerror = (err) => {
+      if (playingCallback) playingCallback(false);
       console.log("Audio play error:", err);
       reject(err);
     };
     audio.play().then(() => {
+      if (playingCallback) playingCallback(true);
       if (audioCache.size >= MAX_CACHE_SIZE) {
         const firstKey = audioCache.keys().next().value;
         audioCache.delete(firstKey);
@@ -24627,7 +24656,11 @@ function read() {
   }
 }
 function write(data) {
-  localStorage.setItem(KEY, JSON.stringify(data));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data));
+  } catch (error) {
+    console.warn("Failed to save progress to localStorage:", error);
+  }
 }
 function getProgress() {
   const d = read();
@@ -24654,7 +24687,7 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
   if (!item) return null;
   const { wordSpeed, exampleSpeed } = getProgress();
   const [isPlayingExample, setIsPlayingExample] = reactExports.useState(false);
-  const speakWord = () => speak(item.word, { rate: wordSpeed });
+  const speakWord2 = () => speak(item.word, { rate: wordSpeed });
   const speakExample = () => {
     if (isPlayingExample) return;
     setIsPlayingExample(true);
@@ -24685,7 +24718,7 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize(), lineHeight: "44px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord, title: "點擊聽發音", children: item.word }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "word word-center", style: { fontSize: getWordFontSize(), lineHeight: "44px" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { onClick: speakWord2, title: "點擊聽發音", children: item.word }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "meaning", children: item.meaning_cht }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "examples", onClick: speakExample, title: "點擊聽例句", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "en", children: item.example_en }),
@@ -24766,107 +24799,189 @@ function SectionPicker({ sections: sections2, selectedId, selectedIds, onChange 
     ] }, s.id)) })
   ] });
 }
-function Learn() {
-  const { words: words2, sections: sections2, sectionMap, bySections } = useWordData();
-  const saved = reactExports.useMemo(() => getProgress(), []);
-  const initialSection = reactExports.useMemo(() => {
+const createStoreImpl = (createState) => {
+  let state;
+  const listeners = /* @__PURE__ */ new Set();
+  const setState = (partial, replace) => {
+    const nextState = typeof partial === "function" ? partial(state) : partial;
+    if (!Object.is(nextState, state)) {
+      const previousState = state;
+      state = (replace != null ? replace : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
+      listeners.forEach((listener) => listener(state, previousState));
+    }
+  };
+  const getState = () => state;
+  const getInitialState = () => initialState;
+  const subscribe = (listener) => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  };
+  const api = { setState, getState, getInitialState, subscribe };
+  const initialState = state = createState(setState, getState, api);
+  return api;
+};
+const createStore = (createState) => createState ? createStoreImpl(createState) : createStoreImpl;
+const identity = (arg) => arg;
+function useStore(api, selector = identity) {
+  const slice = React.useSyncExternalStore(
+    api.subscribe,
+    React.useCallback(() => selector(api.getState()), [api, selector]),
+    React.useCallback(() => selector(api.getInitialState()), [api, selector])
+  );
+  React.useDebugValue(slice);
+  return slice;
+}
+const createImpl = (createState) => {
+  const api = createStore(createState);
+  const useBoundStore = (selector) => useStore(api, selector);
+  Object.assign(useBoundStore, api);
+  return useBoundStore;
+};
+const create = (createState) => createState ? createImpl(createState) : createImpl;
+const useLearnStore = create((set, get) => ({
+  // State
+  selectedSection: null,
+  learnedIds: /* @__PURE__ */ new Set(),
+  exampleClickedId: null,
+  isEditingProgress: false,
+  progressInput: "",
+  showSectionMenu: false,
+  index: 0,
+  // Actions
+  setSelectedSection: (selectedSection) => set({ selectedSection }),
+  setLearnedIds: (learnedIds) => set({ learnedIds }),
+  setExampleClickedId: (exampleClickedId) => set({ exampleClickedId }),
+  setIsEditingProgress: (isEditingProgress) => set({ isEditingProgress }),
+  setProgressInput: (progressInput) => set({ progressInput }),
+  setShowSectionMenu: (showSectionMenu) => set({ showSectionMenu }),
+  setIndex: (index) => set({ index }),
+  initializeFromProgress: (words2, sections2) => {
+    const saved = getProgress();
+    const learnedIds = saved.learnedIds || /* @__PURE__ */ new Set();
+    let initialSection = null;
     if (saved.lastWordId && words2.length > 0) {
       const lastWord = words2.find((w2) => w2.id === saved.lastWordId);
-      return lastWord ? lastWord.section_id : sections2.length > 0 ? sections2[0].id : null;
+      initialSection = lastWord ? lastWord.section_id : sections2.length > 0 ? sections2[0].id : null;
+    } else {
+      initialSection = sections2.length > 0 ? sections2[0].id : null;
     }
-    return sections2.length > 0 ? sections2[0].id : null;
-  }, [saved.lastWordId, words2, sections2]);
-  const [selectedSection, setSelectedSection] = reactExports.useState(initialSection);
-  const [learnedIds, setLearnedIds] = reactExports.useState(saved.learnedIds || /* @__PURE__ */ new Set());
-  const [exampleClickedId, setExampleClickedId] = reactExports.useState(null);
-  const [isEditingProgress, setIsEditingProgress] = reactExports.useState(false);
-  const [progressInput, setProgressInput] = reactExports.useState("");
-  const [showSectionMenu, setShowSectionMenu] = reactExports.useState(false);
+    set({ selectedSection: initialSection, learnedIds });
+  },
+  handleSectionChange: (sectionId, filtered, getProgress2) => {
+    const saved = getProgress2();
+    let newIndex = 0;
+    if (saved.lastWordId && filtered.length > 0) {
+      const idx = filtered.findIndex((w2) => w2.id === saved.lastWordId);
+      newIndex = idx >= 0 ? idx : 0;
+    }
+    set({ selectedSection: sectionId, index: newIndex });
+  },
+  onPrev: (filtered) => {
+    set((state) => {
+      var _a;
+      const ni2 = (state.index - 1 + filtered.length) % filtered.length;
+      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
+      if (wordId) saveProgress({});
+      return { index: ni2 };
+    });
+  },
+  onNext: (filtered) => {
+    set((state) => {
+      var _a;
+      const ni2 = (state.index + 1) % filtered.length;
+      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
+      if (wordId) saveProgress({});
+      return { index: ni2 };
+    });
+  },
+  toggleLearned: (id2) => {
+    set((state) => {
+      const next = new Set(state.learnedIds);
+      if (next.has(id2)) next.delete(id2);
+      else next.add(id2);
+      saveProgress({ learnedIds: next });
+      return { learnedIds: next };
+    });
+  },
+  handleProgressClick: () => {
+    set({ isEditingProgress: true, progressInput: "" });
+  },
+  handleProgressSubmit: (filtered) => {
+    var _a;
+    const { progressInput } = get();
+    const num = parseInt(progressInput, 10);
+    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
+      const newIndex = num - 1;
+      set({ index: newIndex, isEditingProgress: false });
+      const wordId = (_a = filtered[newIndex]) == null ? void 0 : _a.id;
+      if (wordId) saveProgress({});
+    } else {
+      set({ isEditingProgress: false });
+    }
+  },
+  handleProgressKeyDown: (e, filtered) => {
+    if (e.key === "Enter") {
+      get().handleProgressSubmit(filtered);
+    } else if (e.key === "Escape") {
+      set({ isEditingProgress: false });
+    }
+  },
+  onExampleClick: (id2) => {
+    set({ exampleClickedId: id2 });
+    set((state) => {
+      if (!state.learnedIds.has(id2)) {
+        const nextSet = new Set(state.learnedIds);
+        nextSet.add(id2);
+        saveProgress({ learnedIds: nextSet });
+        return { learnedIds: nextSet };
+      }
+      return state;
+    });
+  }
+}));
+function Learn() {
+  const { words: words2, sections: sections2, sectionMap, bySections } = useWordData();
+  const {
+    selectedSection,
+    learnedIds,
+    exampleClickedId,
+    isEditingProgress,
+    progressInput,
+    showSectionMenu,
+    index,
+    setExampleClickedId,
+    setIsEditingProgress,
+    setProgressInput,
+    setShowSectionMenu,
+    setIndex,
+    initializeFromProgress,
+    handleSectionChange,
+    onPrev,
+    onNext,
+    toggleLearned,
+    handleProgressClick,
+    handleProgressSubmit,
+    handleProgressKeyDown,
+    onExampleClick
+  } = useLearnStore();
+  reactExports.useEffect(() => {
+    if (words2.length > 0 && sections2.length > 0) {
+      initializeFromProgress(words2, sections2);
+    }
+  }, [words2, sections2, initializeFromProgress]);
   const filtered = reactExports.useMemo(() => {
     if (!selectedSection) return [];
     const list = bySections([selectedSection]);
     return list;
   }, [bySections, selectedSection, words2]);
-  const initialIndex = reactExports.useMemo(() => {
-    if (saved.lastWordId && filtered.length > 0) {
-      const idx = filtered.findIndex((w2) => w2.id === saved.lastWordId);
-      return idx >= 0 ? idx : 0;
-    }
-    return 0;
-  }, [saved.lastWordId, filtered]);
-  const [index, setIndex] = reactExports.useState(initialIndex);
   reactExports.useEffect(() => {
     if (index >= filtered.length) setIndex(0);
-  }, [filtered.length]);
-  const handleSectionChange = (sectionId) => {
-    setSelectedSection(sectionId);
-    setIndex(0);
-  };
+  }, [filtered.length, setIndex]);
   const current = filtered[index] || null;
   const pos = `${index + 1} / ${filtered.length}`;
   reactExports.useEffect(() => {
     setExampleClickedId(null);
-  }, [current == null ? void 0 : current.id]);
-  reactExports.useEffect(() => {
-    if (exampleClickedId !== null) {
-      setLearnedIds((prev) => {
-        if (!prev.has(exampleClickedId)) {
-          const nextSet = new Set(prev);
-          nextSet.add(exampleClickedId);
-          saveProgress({ learnedIds: nextSet });
-          return nextSet;
-        }
-        return prev;
-      });
-    }
-  }, [exampleClickedId]);
-  const onPrev = () => {
-    setIndex((i) => {
-      var _a;
-      const ni2 = (i - 1 + filtered.length) % filtered.length;
-      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
-      if (wordId) saveProgress({});
-      return ni2;
-    });
-  };
-  const onNext = () => {
-    setIndex((i) => {
-      var _a;
-      const ni2 = (i + 1) % filtered.length;
-      const wordId = (_a = filtered[ni2]) == null ? void 0 : _a.id;
-      if (wordId) saveProgress({});
-      return ni2;
-    });
-  };
-  const toggleLearned = (id2) => {
-    const next = new Set(learnedIds);
-    if (next.has(id2)) next.delete(id2);
-    else next.add(id2);
-    setLearnedIds(next);
-    saveProgress({ learnedIds: next });
-  };
-  const handleProgressClick = () => {
-    setIsEditingProgress(true);
-    setProgressInput("");
-  };
-  const handleProgressSubmit = () => {
-    var _a;
-    const num = parseInt(progressInput, 10);
-    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
-      const newIndex = num - 1;
-      setIndex(newIndex);
-      const wordId = (_a = filtered[newIndex]) == null ? void 0 : _a.id;
-      if (wordId) saveProgress({});
-    }
-    setIsEditingProgress(false);
-  };
-  const handleProgressKeyDown = (e) => {
-    if (e.key === "Enter") {
-      handleProgressSubmit();
-    } else if (e.key === "Escape") {
-      setIsEditingProgress(false);
-    }
-  };
+  }, [current == null ? void 0 : current.id, setExampleClickedId]);
   reactExports.useEffect(() => {
     const handleClickOutside = (e) => {
       if (showSectionMenu && !e.target.closest(".chip")) {
@@ -24875,7 +24990,7 @@ function Learn() {
     };
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [showSectionMenu]);
+  }, [showSectionMenu, setShowSectionMenu]);
   if (!filtered.length) return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { maxWidth: 900, width: "100%" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedId: selectedSection, onChange: handleSectionChange }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "panel", children: "沒有符合的單字" })
@@ -24914,7 +25029,7 @@ function Learn() {
               "div",
               {
                 onClick: () => {
-                  handleSectionChange(s.id);
+                  handleSectionChange(s.id, filtered, getProgress);
                   setShowSectionMenu(false);
                 },
                 style: {
@@ -24943,8 +25058,8 @@ function Learn() {
           type: "number",
           value: progressInput,
           onChange: (e) => setProgressInput(e.target.value),
-          onBlur: handleProgressSubmit,
-          onKeyDown: handleProgressKeyDown,
+          onBlur: () => handleProgressSubmit(filtered),
+          onKeyDown: (e) => handleProgressKeyDown(e, filtered),
           autoFocus: true,
           min: "1",
           max: filtered.length,
@@ -24973,10 +25088,10 @@ function Learn() {
       {
         item: current,
         learned: learnedIds.has(current.id),
-        onPrev,
-        onNext,
+        onPrev: () => onPrev(filtered),
+        onNext: () => onNext(filtered),
         onToggleLearned: () => toggleLearned(current.id),
-        onExampleClick: () => setExampleClickedId(current.id)
+        onExampleClick: () => onExampleClick(current.id)
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between" }, children: [
@@ -24993,9 +25108,223 @@ function Learn() {
     ] })
   ] });
 }
-function speakWithConfig(text) {
-  const { wordSpeed } = getProgress();
-  speak(text, { rate: wordSpeed });
+function QuizOptions({ filterMode, setFilterMode, selected, setSelected, sections: sections2, mode, setMode, answerType, setAnswerType, pool, start }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel stack", style: { gap: 20 }, children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 12 }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "15px", fontWeight: "500", color: "#555" }, children: "📚 選擇題庫" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { flexWrap: "wrap", gap: 16, alignItems: "center" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, cursor: "pointer", padding: "6px 12px", background: filterMode === "learned" ? "#E3F2FD" : "transparent", borderRadius: "8px", transition: "background 0.2s" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "learned", onChange: () => setFilterMode("learned") }),
+          "只出已學過"
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, cursor: "pointer", padding: "6px 12px", background: filterMode === "sections" ? "#E3F2FD" : "transparent", borderRadius: "8px", transition: "background 0.2s" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "radio", name: "filter", checked: filterMode === "sections", onChange: () => setFilterMode("sections") }),
+          "指定主題"
+        ] }),
+        filterMode === "sections" && /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: selected[0] || "", onChange: (e) => setSelected(e.target.value ? [e.target.value] : []), style: { flex: "1", minWidth: "180px", maxWidth: "300px", marginLeft: "auto", marginRight: "auto" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "全部主題" }),
+          sections2.map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: s.id, children: [
+            s.number,
+            ". ",
+            s.name
+          ] }, s.id))
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { height: "1px", background: "#f0f0f0" } }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, alignItems: "center" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 16, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "14px" }, children: "題型" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "audio", children: "聽音辨義" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "sentence", children: "例句聽力" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 8, alignItems: "center" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { color: "#666", fontSize: "14px" }, children: "作答" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "choice", children: "選擇題" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "input", children: "填空題" })
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, style: { padding: "10px 24px", marginTop: "8px", marginBottom: "8px" }, children: [
+        "開始測驗 (",
+        pool.length,
+        " 題)"
+      ] }),
+      filterMode === "learned" && pool.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { color: "#f44336", fontSize: "14px", textAlign: "center", padding: "8px", background: "#ffebee", borderRadius: "8px" }, children: "⚠️ 尚未學習任何單字，請先到學習頁面學習單字" })
+    ] })
+  ] });
+}
+function QuizContent({
+  started,
+  accuracy,
+  score,
+  count,
+  endQuiz,
+  dir,
+  q: q2,
+  getWordFontSize,
+  replayAudio,
+  options,
+  selectedOption,
+  correct,
+  setSelectedOption,
+  setCorrect,
+  makeQuestion,
+  answerType,
+  answer,
+  setAnswer,
+  check,
+  next,
+  selectOption,
+  target
+}) {
+  const [isPlaying, setIsPlaying] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    onPlayingChange(setIsPlaying);
+    return () => onPlayingChange(null);
+  }, []);
+  reactExports.useEffect(() => {
+    if (q2 && (dir === "audio" || dir === "sentence")) {
+      replayAudio();
+    }
+  }, [q2, dir]);
+  if (!q2) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+    started && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "progress", children: [
+        "正確率 ",
+        accuracy,
+        "%（",
+        score,
+        "/",
+        count,
+        "）"
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: endQuiz, children: "結束測驗" })
+    ] }),
+    started && q2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card quiz-card", style: { display: "flex", flexDirection: "column" }, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: dir === "sentence" ? "例句聽力" : dir === "audio" ? "聽音 ➜ 中" : dir === "en2zh" ? "英 ➜ 中" : "中 ➜ 英" }),
+          dir === "audio" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "14px", color: "#555" }, children: "請聽音選擇中文意思" }),
+          dir === "sentence" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { fontSize: "14px", color: "#555" }, children: "請聽例句並選出出現過的單字" })
+        ] }),
+        dir === "audio" || dir === "sentence" ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { alignItems: "center", marginTop: 6, marginBottom: 6 }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              className: "btn accent",
+              type: "button",
+              onClick: replayAudio,
+              style: {
+                fontSize: "48px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "transparent",
+                border: "none",
+                borderRadius: "10%",
+                boxShadow: "none",
+                opacity: isPlaying ? 0.6 : 1,
+                transform: isPlaying ? "scale(1.1)" : "scale(1)",
+                transition: "all 0.2s ease",
+                animation: isPlaying ? "pulse 1s infinite" : "none"
+              },
+              children: "🔊"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("style", { children: `
+                  @keyframes pulse {
+                    0%, 100% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                  }
+                ` })
+        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "question", style: {
+          marginTop: 8,
+          marginBottom: 12,
+          textAlign: "center",
+          fontSize: getWordFontSize(dir === "en2zh" ? q2.word : q2.meaning_cht),
+          lineHeight: "44px"
+        }, children: dir === "en2zh" ? q2.word : q2.meaning_cht })
+      ] }),
+      answerType === "choice" ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "stack", style: { gap: 10, marginTop: "auto" }, children: options.map((opt) => {
+        const isSelected = selectedOption === opt;
+        const showWrong = isSelected && correct === false;
+        const showCorrect = isSelected && correct === true;
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: () => {
+              if (showWrong) {
+                setCorrect(null);
+                setSelectedOption(null);
+                return;
+              }
+              const isCorrect = selectOption(opt, target);
+              if (isCorrect) {
+                setTimeout(() => makeQuestion(), 300);
+              }
+            },
+            type: "button",
+            style: {
+              padding: "12px 20px",
+              paddingRight: showWrong ? "40px" : "20px",
+              border: `1.5px solid ${showWrong ? "#ffb3ba" : showCorrect ? "#4CAF50" : "#d0d0d0"}`,
+              borderRadius: "8px",
+              background: showWrong ? "#fff5f5" : showCorrect ? "#e8f5e9" : "transparent",
+              cursor: "pointer",
+              fontSize: "18px",
+              textAlign: "left",
+              transition: "all 0.2s",
+              position: "relative"
+            },
+            onMouseEnter: (e) => {
+              if (!showWrong && !showCorrect) {
+                e.target.style.borderColor = "#4A90E2";
+                e.target.style.background = "#f8f9fa";
+              }
+            },
+            onMouseLeave: (e) => {
+              if (!showWrong && !showCorrect) {
+                e.target.style.borderColor = "#d0d0d0";
+                e.target.style.background = "transparent";
+              }
+            },
+            children: [
+              opt,
+              showWrong && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { style: { position: "absolute", right: "16px", top: "50%", transform: "translateY(-50%)", fontSize: "20px", color: "#ff6b6b" }, children: "✗" })
+            ]
+          },
+          opt
+        );
+      }) }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: check, className: "stack", style: { gap: 12 }, children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            autoFocus: true,
+            value: answer,
+            onChange: (e) => setAnswer(e.target.value),
+            placeholder: dir === "zh2en" ? "請輸入英文單字" : "請輸入中文意思"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8 }, children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", type: "submit", children: "送出" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "btn secondary", onClick: next, children: "跳過/下一題" })
+        ] })
+      ] }),
+      correct != null && answerType === "input" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: 10 }, children: correct ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "badge", children: "答對了！" }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "badge error", children: [
+        "再試試看～ 正解：",
+        dir === "zh2en" ? q2.word : q2.meaning_cht
+      ] }) })
+    ] })
+  ] });
 }
 const QUIZ_KEY = "kids-english-quiz-v1";
 const readQuizState = () => {
@@ -25027,36 +25356,67 @@ function sample(arr, k2, avoidId) {
   }
   return res;
 }
-function Quiz() {
-  const { words: words2, sections: sections2, bySections } = useWordData();
-  const learned = getProgress().learnedIds;
-  const [selected, setSelected] = reactExports.useState([]);
-  const [learnedOnly, setLearnedOnly] = reactExports.useState(false);
-  const [mode, setMode] = reactExports.useState("mixed");
-  const [answerType, setAnswerType] = reactExports.useState("mcq");
-  const rawPool = reactExports.useMemo(() => bySections(selected), [bySections, selected, words2]);
-  const pool = reactExports.useMemo(() => learnedOnly ? rawPool.filter((w2) => learned.has(w2.id)) : rawPool, [rawPool, learnedOnly, learned]);
-  const qs = reactExports.useRef(readQuizState());
-  const [started, setStarted] = reactExports.useState(false);
-  const [q2, setQ] = reactExports.useState(null);
-  const [dir, setDir] = reactExports.useState("en2zh");
-  const [options, setOptions] = reactExports.useState([]);
-  const [answer, setAnswer] = reactExports.useState("");
-  const [selectedOption, setSelectedOption] = reactExports.useState(null);
-  const [correct, setCorrect] = reactExports.useState(null);
-  const [count, setCount] = reactExports.useState(0);
-  const [score, setScore] = reactExports.useState(0);
-  const accuracy = count ? Math.round(score * 100 / count) : 0;
-  const makeQuestion = () => {
+const useQuizStore = create((set, get) => ({
+  // Options state
+  selected: [],
+  filterMode: "learned",
+  // learned | sections
+  mode: "mixed",
+  // en2zh | zh2en | audio | mixed
+  answerType: "choice",
+  // choice | input
+  // Quiz state
+  started: false,
+  q: null,
+  dir: "en2zh",
+  currentSentence: "",
+  // 當前使用的例句
+  options: [],
+  answer: "",
+  selectedOption: null,
+  correct: null,
+  count: 0,
+  score: 0,
+  answered: false,
+  // Persistent quiz state
+  quizState: readQuizState(),
+  // Computed
+  accuracy: () => {
+    const { count, score } = get();
+    return count ? Math.round(score * 100 / count) : 0;
+  },
+  // Actions
+  setSelected: (selected) => set({ selected }),
+  setFilterMode: (filterMode) => set({ filterMode }),
+  setMode: (mode) => set({ mode }),
+  setAnswerType: (answerType) => set({ answerType }),
+  setStarted: (started) => set({ started }),
+  setQ: (q2) => set({ q: q2 }),
+  setDir: (dir) => set({ dir }),
+  setCurrentSentence: (currentSentence) => set({ currentSentence }),
+  setOptions: (options) => set({ options }),
+  setAnswer: (answer) => set({ answer }),
+  setSelectedOption: (selectedOption) => set({ selectedOption }),
+  setCorrect: (correct) => set({ correct }),
+  setCount: (valueOrUpdater) => set((state) => ({ count: typeof valueOrUpdater === "function" ? valueOrUpdater(state.count) : valueOrUpdater })),
+  setScore: (valueOrUpdater) => set((state) => ({ score: typeof valueOrUpdater === "function" ? valueOrUpdater(state.score) : valueOrUpdater })),
+  setAnswered: (answered) => set({ answered }),
+  updateQuizState: (updater) => {
+    const newState = updater(get().quizState);
+    set({ quizState: newState });
+    writeQuizState(newState);
+  },
+  makeQuestion: (pool, speakWord2, speakSentence2, allWords = pool) => {
+    const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered, setCurrentSentence, filterMode } = get();
     if (pool.length === 0) {
       setQ(null);
       return;
     }
-    const weights = pool.map((w2) => (qs.current.wrongCounts[w2.id] || 0) + 1);
+    const weights = pool.map((w2) => (quizState.wrongCounts[w2.id] || 0) + 1);
     const item = weightedPick(pool, weights);
     let direction = mode;
     if (mode === "mixed") {
-      const dirs = ["en2zh", "zh2en", "audio"];
+      const dirs = ["en2zh", "zh2en", "audio", "sentence"];
       direction = dirs[Math.floor(Math.random() * dirs.length)];
     }
     setQ(item);
@@ -25064,10 +25424,38 @@ function Quiz() {
     setAnswer("");
     setSelectedOption(null);
     setCorrect(null);
-    if (answerType === "mcq") {
-      const distractors = sample(pool, 3, item.id);
+    setAnswered(false);
+    if (direction === "sentence") {
+      const sentenceText = Math.random() < 0.5 ? item.sentence1 : item.sentence2;
+      setCurrentSentence(sentenceText);
+    } else {
+      setCurrentSentence("");
+    }
+    if (answerType === "choice") {
+      let distractors;
+      if (filterMode === "learned" && pool.length < 10 && pool.length > 0) {
+        const usedIds = /* @__PURE__ */ new Set([item.id]);
+        const learnedDistractors = [];
+        const otherDistractors = [];
+        if (pool.length > 1) {
+          const learned = sample(pool, 1, item.id);
+          learnedDistractors.push(...learned);
+          learned.forEach((d) => usedIds.add(d.id));
+        }
+        const needed = 3 - learnedDistractors.length;
+        while (otherDistractors.length < needed && usedIds.size < allWords.length) {
+          const candidate = allWords[Math.floor(Math.random() * allWords.length)];
+          if (!usedIds.has(candidate.id)) {
+            usedIds.add(candidate.id);
+            otherDistractors.push(candidate);
+          }
+        }
+        distractors = [...learnedDistractors, ...otherDistractors];
+      } else {
+        distractors = sample(pool, 3, item.id);
+      }
       let opts;
-      if (direction === "zh2en") {
+      if (direction === "zh2en" || direction === "sentence") {
         opts = [item.word, ...distractors.map((d) => d.word)];
       } else {
         opts = [item.meaning_cht, ...distractors.map((d) => d.meaning_cht)];
@@ -25081,14 +25469,19 @@ function Quiz() {
       setOptions([]);
     }
     if (direction === "audio") {
-      setTimeout(() => speakWithConfig(item.word), 50);
+      setTimeout(() => speakWord2(item.word), 50);
     }
-  };
-  const start = () => {
+    if (direction === "sentence") {
+      const { currentSentence } = get();
+      setTimeout(() => speakSentence2(currentSentence), 50);
+    }
+  },
+  startQuiz: () => {
+    const { setStarted, makeQuestion } = get();
     setStarted(true);
-    makeQuestion();
-  };
-  const endQuiz = () => {
+  },
+  endQuiz: () => {
+    const { setStarted, setQ, setCount, setScore, setCorrect, setAnswer, setSelectedOption, setAnswered } = get();
     setStarted(false);
     setQ(null);
     setCount(0);
@@ -25096,140 +25489,223 @@ function Quiz() {
     setCorrect(null);
     setAnswer("");
     setSelectedOption(null);
+    setAnswered(false);
+  },
+  checkAnswer: () => {
+    const { q: q2, dir, answer, setCorrect, setCount, setScore, updateQuizState, answered, setAnswered } = get();
+    if (!q2 || answered) return;
+    const normalize = (s) => s.trim().toLowerCase();
+    const user = normalize(answer);
+    const target = normalize(dir === "zh2en" ? q2.word : q2.meaning_cht);
+    const ok2 = user === target;
+    setCorrect(ok2);
+    setCount((prev) => prev + 1);
+    setAnswered(true);
+    if (ok2) {
+      setScore((prev) => prev + 1);
+    }
+    updateQuizState((cur) => {
+      if (!ok2) {
+        cur.wrongCounts[q2.id] = (cur.wrongCounts[q2.id] || 0) + 1;
+      } else if (cur.wrongCounts[q2.id] > 0) {
+        cur.wrongCounts[q2.id] -= 1;
+      }
+      return cur;
+    });
+  },
+  replayAudio: (speakWord2, speakSentence2) => {
+    const { dir, q: q2, currentSentence } = get();
+    if (dir === "audio" && q2) speakWord2(q2.word);
+    if (dir === "sentence" && currentSentence) {
+      speakSentence2(currentSentence);
+    }
+  },
+  selectOption: (opt, target) => {
+    const { setSelectedOption, setCorrect, setCount, setScore, updateQuizState, q: q2, answered, setAnswered } = get();
+    setSelectedOption(opt);
+    const ok2 = opt === target;
+    if (!answered) {
+      setCount((prev) => prev + 1);
+      setAnswered(true);
+      if (ok2) {
+        setCorrect(true);
+        setScore((prev) => prev + 1);
+        updateQuizState((cur) => {
+          if (cur.wrongCounts[q2.id] > 0) cur.wrongCounts[q2.id] -= 1;
+          return cur;
+        });
+      } else {
+        setCorrect(false);
+        updateQuizState((cur) => {
+          cur.wrongCounts[q2.id] = (cur.wrongCounts[q2.id] || 0) + 1;
+          return cur;
+        });
+      }
+    } else {
+      setCorrect(ok2);
+    }
+    return ok2;
+  }
+}));
+function speakWord(text) {
+  const { wordSpeed } = getProgress();
+  speak(text, { rate: wordSpeed });
+}
+function speakSentence(text) {
+  const { exampleSpeed } = getProgress();
+  googleTTS(text, { lang: "en", rate: exampleSpeed });
+}
+function Quiz() {
+  const { words: words2, sections: sections2, bySections } = useWordData();
+  const learned = getProgress().learnedIds;
+  const {
+    selected,
+    setSelected,
+    filterMode,
+    setFilterMode,
+    mode,
+    setMode,
+    answerType,
+    setAnswerType,
+    started,
+    q: q2,
+    dir,
+    options,
+    answer,
+    setAnswer,
+    selectedOption,
+    setSelectedOption,
+    correct,
+    setCorrect,
+    count,
+    score,
+    accuracy,
+    makeQuestion,
+    startQuiz,
+    endQuiz: endQuizStore,
+    checkAnswer,
+    replayAudio: replayAudioStore,
+    selectOption
+  } = useQuizStore();
+  const getWordFontSize = (word = "") => {
+    const cjkRe = /[\u3400-\u4DBF\u4E00-\u9FFF]/;
+    let effectiveLen = 0;
+    for (const ch2 of word) {
+      effectiveLen += cjkRe.test(ch2) ? 2 : 1;
+    }
+    if (effectiveLen <= 8) return "44px";
+    if (effectiveLen <= 12) return "36px";
+    if (effectiveLen <= 16) return "30px";
+    return "24px";
   };
-  const normalize = (s) => s.trim().toLowerCase();
+  const pool = reactExports.useMemo(() => {
+    if (filterMode === "learned") {
+      return words2.filter((w2) => learned.has(w2.id));
+    }
+    return selected.length === 0 ? words2 : bySections(selected);
+  }, [filterMode, selected, bySections, words2, learned]);
+  const start = () => {
+    startQuiz();
+    makeQuestion(pool, speakWord, speakSentence, words2);
+  };
+  const endQuiz = () => endQuizStore();
   const check = (e) => {
     if (e) e.preventDefault();
-    if (!q2) return;
-    let ok2 = false;
-    if (answerType === "mcq") {
-      const target = dir === "zh2en" ? q2.word : q2.meaning_cht;
-      ok2 = selectedOption === target;
-    } else {
-      const user = normalize(answer);
-      const target = normalize(dir === "zh2en" ? q2.word : q2.meaning_cht);
-      ok2 = user === target;
-    }
-    setCorrect(ok2);
-    setCount((c) => c + 1);
-    if (ok2) setScore((s) => s + 1);
-    const cur = qs.current;
-    if (!ok2) {
-      cur.wrongCounts[q2.id] = (cur.wrongCounts[q2.id] || 0) + 1;
-    } else if (cur.wrongCounts[q2.id] > 0) {
-      cur.wrongCounts[q2.id] -= 1;
-    }
-    writeQuizState(cur);
+    checkAnswer();
   };
-  const next = () => makeQuestion();
-  const replayAudio = () => {
-    if (dir === "audio" && q2) speakWithConfig(q2.word);
-  };
+  const next = () => makeQuestion(pool, speakWord, speakSentence, words2);
+  const replayAudio = () => replayAudioStore(speakWord, speakSentence);
   reactExports.useEffect(() => {
-    if (started) makeQuestion();
-  }, [learnedOnly, selected, mode, answerType]);
+    if (started) makeQuestion(pool, speakWord, speakSentence, words2);
+  }, [filterMode, selected, mode, answerType]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
-    !started && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedIds: selected, onChange: setSelected }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between" }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 12 }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked: learnedOnly, onChange: (e) => setLearnedOnly(e.target.checked) }),
-            " 只出已學過"
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
-            "題型：",
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: mode, onChange: (e) => setMode(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mixed", children: "混合" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en2zh", children: "英 ➜ 中" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "zh2en", children: "中 ➜ 英" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "audio", children: "聽音辨義" })
-            ] })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "row", style: { gap: 6 }, children: [
-            "作答：",
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: answerType, onChange: (e) => setAnswerType(e.target.value), children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "mcq", children: "選擇題" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "input", children: "填空題" })
-            ] })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "btn", onClick: start, disabled: pool.length === 0, children: [
-          "開始測驗（題庫：",
-          pool.length,
-          "）"
-        ] })
-      ] })
-    ] }),
-    started && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between", alignItems: "center" }, children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "progress", children: [
-        "正確率 ",
-        accuracy,
-        "%（",
+    !started && /* @__PURE__ */ jsxRuntimeExports.jsx(
+      QuizOptions,
+      {
+        filterMode,
+        setFilterMode,
+        selected,
+        setSelected,
+        sections: sections2,
+        mode,
+        setMode,
+        answerType,
+        setAnswerType,
+        pool,
+        start
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      QuizContent,
+      {
+        started,
+        accuracy: accuracy(),
         score,
-        "/",
         count,
-        "）"
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: endQuiz, children: "結束測驗" })
-    ] }),
-    started && q2 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "card quiz-card", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { justifyContent: "space-between" }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "chip", children: dir === "audio" ? "聽音 ➜ 中" : dir === "en2zh" ? "英 ➜ 中" : "中 ➜ 英" }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "question", style: { marginTop: 8, marginBottom: 12 }, children: dir === "en2zh" ? q2.word : dir === "zh2en" ? q2.meaning_cht : "請聽音選擇中文意思" }),
-      dir === "audio" && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { marginBottom: 8 }, children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn accent", type: "button", onClick: replayAudio, children: "🔊 再播一次" }) }),
-      answerType === "mcq" ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 10 }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "row", style: { flexWrap: "wrap", gap: 8 }, children: options.map((opt) => /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: `btn ${selectedOption === opt ? "secondary" : ""}`, onClick: () => setSelectedOption(opt), type: "button", style: { minWidth: 120 }, children: opt }, opt)) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8 }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: check, children: "送出" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", type: "button", onClick: next, children: "跳過/下一題" })
-        ] })
-      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: check, className: "stack", style: { gap: 12 }, children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            autoFocus: true,
-            value: answer,
-            onChange: (e) => setAnswer(e.target.value),
-            placeholder: dir === "zh2en" ? "請輸入英文單字" : "請輸入中文意思"
-          }
-        ),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { gap: 8 }, children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", type: "submit", children: "送出" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", className: "btn secondary", onClick: next, children: "跳過/下一題" })
-        ] })
-      ] }),
-      correct != null && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { style: { marginTop: 10 }, children: correct ? /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "badge", children: "答對了！" }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "badge error", children: [
-        "再試試看～ 正解：",
-        dir === "zh2en" ? q2.word : q2.meaning_cht
-      ] }) })
-    ] })
+        endQuiz,
+        dir,
+        q: q2,
+        getWordFontSize,
+        replayAudio,
+        options,
+        selectedOption,
+        correct,
+        setSelectedOption,
+        setCorrect,
+        makeQuestion: () => makeQuestion(pool, speakWord, speakSentence, words2),
+        answerType,
+        answer,
+        setAnswer,
+        check,
+        next,
+        selectOption,
+        target: q2 ? dir === "zh2en" || dir === "sentence" ? q2.word : q2.meaning_cht : ""
+      }
+    )
   ] });
 }
+const useAdminStore = create((set, get) => ({
+  // State
+  selected: [],
+  // Actions
+  setSelected: (selected) => set({ selected }),
+  initializeFromProgress: () => {
+  },
+  clearAll: () => {
+    saveProgress({ learnedIds: /* @__PURE__ */ new Set(), lastIndex: 0 });
+    alert("已清除所有學習記錄");
+    location.reload();
+  },
+  clearSelectedSections: (filtered) => {
+    const { selected } = get();
+    if (selected.length === 0) return;
+    const prog = getProgress();
+    const set2 = new Set(prog.learnedIds);
+    for (const w2 of filtered) {
+      set2.delete(w2.id);
+    }
+    saveProgress({ learnedIds: set2 });
+    alert("已清除所選 Section 的學習記錄");
+    location.reload();
+  }
+}));
 function Admin() {
   const { words: words2, sections: sections2, bySections } = useWordData();
   const prog = getProgress();
   const learnedIds = prog.learnedIds;
   const learnedCount = learnedIds.size;
   const total = words2.length;
-  const [selected, setSelected] = reactExports.useState([]);
-  const [wordSpeed, setWordSpeed] = reactExports.useState(prog.wordSpeed);
-  const [exampleSpeed, setExampleSpeed] = reactExports.useState(prog.exampleSpeed);
+  const {
+    selected,
+    setSelected,
+    initializeFromProgress,
+    clearAll,
+    clearSelectedSections
+  } = useAdminStore();
+  reactExports.useEffect(() => {
+    initializeFromProgress();
+  }, [initializeFromProgress]);
   const filtered = reactExports.useMemo(() => bySections(selected), [bySections, selected, words2]);
-  const clearAll = () => {
-    saveProgress({ learnedIds: /* @__PURE__ */ new Set(), lastIndex: 0 });
-    alert("已清除所有學習記錄");
-    location.reload();
-  };
-  const clearSelectedSections = () => {
-    if (selected.length === 0) return;
-    const set = new Set(learnedIds);
-    for (const w2 of filtered) {
-      set.delete(w2.id);
-    }
-    saveProgress({ learnedIds: set });
-    alert("已清除所選 Section 的學習記錄");
-    location.reload();
-  };
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between" }, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -25258,7 +25734,7 @@ function Admin() {
         "所選 Section 單字數：",
         filtered.length
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: clearSelectedSections, disabled: selected.length === 0, children: "清除所選 Section 記錄" })
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: () => clearSelectedSections(filtered), disabled: selected.length === 0, children: "清除所選 Section 記錄" })
     ] })
   ] });
 }
