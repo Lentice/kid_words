@@ -104,9 +104,14 @@ export const useQuizStore = create((set, get) => ({
     setAnswered(false)
     
     // 如果是例句模式，預先選擇並保存例句
+    // NOTE: 部分資料使用 `example_en` 而非 `sentence1`/`sentence2`，因此先嘗試多個欄位
     if (direction === 'sentence') {
-      const sentenceText = Math.random() < 0.5 ? item.sentence1 : item.sentence2
-      setCurrentSentence(sentenceText)
+      const candidates = []
+      if (item.sentence1) candidates.push(item.sentence1)
+      if (item.sentence2) candidates.push(item.sentence2)
+      if (item.example_en) candidates.push(item.example_en)
+      const sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : ''
+      setCurrentSentence(sentenceText || '')
     } else {
       setCurrentSentence('')
     }
@@ -158,14 +163,6 @@ export const useQuizStore = create((set, get) => ({
       setOptions([])
     }
 
-    if (direction === 'audio') {
-      setTimeout(() => speakWord(item.word), 50)
-    }
-    if (direction === 'sentence') {
-      // 使用已保存的例句
-      const { currentSentence } = get()
-      setTimeout(() => speakSentence(currentSentence), 50)
-    }
   },
 
   startQuiz: () => {
