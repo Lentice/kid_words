@@ -19,9 +19,14 @@ function weightedPick(items, weights) {
   return items[items.length - 1]
 }
 
-function sample(arr, k, avoidId) {
+function sample(arr, k, avoid) {
   const res = []
-  const used = new Set([avoidId])
+  const used = new Set()
+  if (avoid instanceof Set) {
+    for (const id of avoid) used.add(id)
+  } else if (avoid !== undefined && avoid !== null) {
+    used.add(avoid)
+  }
   while (res.length < k && used.size < arr.length) {
     const x = arr[Math.floor(Math.random() * arr.length)]
     if (used.has(x.id)) continue
@@ -103,12 +108,9 @@ export const useQuizStore = create((set, get) => ({
     setAnswered(false)
     
     // 如果是例句模式，預先選擇並保存例句
-    // NOTE: 部分資料使用 `example_en` 而非 `sentence1`/`sentence2`，因此先嘗試多個欄位
     if (direction === 'sentence') {
       const candidates = []
-      if (item.sentence1) candidates.push(item.sentence1)
-      if (item.sentence2) candidates.push(item.sentence2)
-      if (item.example_en) candidates.push(item.example_en)
+      candidates.push(item.example_en)
       const sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : ''
       setCurrentSentence(sentenceText || '')
     } else {
@@ -116,42 +118,17 @@ export const useQuizStore = create((set, get) => ({
     }
 
     if (answerType === 'choice') {
-      let distractors
+      // 通用流程：先從 pool 中嘗試取最多 3 個（避開 item），若不足再從 allWords 補足。
+      const usedIds = new Set([item.id])
+      let distractors = sample(pool, 3, usedIds)
+      distractors.forEach(d => usedIds.add(d.id))
 
-      // 如果是學過的單字模式且學過的單字少於10個，特殊處理
-      if (filterMode === 'learned') {
-        if (pool.length < 10) {
-          const usedIds = new Set([item.id])
-          const learnedDistractors = []
-          const otherDistractors = []
-
-          // 先嘗試從學過的單字中選最多2個干擾項
-          for (let i = 0; i < Math.min(2, pool.length); i++) {
-            const learned = sample(pool, 1, item.id)
-            learnedDistractors.push(...learned)
-            learned.forEach(d => usedIds.add(d.id))
-          }
-
-          // 從所有單字中選擇剩餘的干擾項，湊足3個
-          const needed = 3 - learnedDistractors.length
-          while (otherDistractors.length < needed && usedIds.size < allWords.length) {
-            const candidate = allWords[Math.floor(Math.random() * allWords.length)]
-            if (!usedIds.has(candidate.id)) {
-              usedIds.add(candidate.id)
-              otherDistractors.push(candidate)
-            }
-          }
-
-          distractors = [...learnedDistractors, ...otherDistractors]
-        } else {
-          // 原本的邏輯：從pool中隨機選3個
-          distractors = sample(pool, 3, item.id)
-        }
-      }
-
-      // 如果還沒產生 distractors（非 learned 模式），從 pool 中選擇隨機干擾項
-      if (!distractors) {
-        distractors = sample(pool, 3, item.id)
+      // 若還不夠，從 allWords 中補足
+      if (distractors.length < 3) {
+        const needed = 3 - distractors.length
+        const fromAll = sample(allWords, needed, usedIds)
+        distractors.push(...fromAll)
+        fromAll.forEach(d => usedIds.add(d.id))
       }
 
       let opts
