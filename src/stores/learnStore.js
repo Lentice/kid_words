@@ -62,20 +62,23 @@ export const useLearnStore = create((set, get) => ({
     set({ selectedSection: initialSection, learnedIds, sectionProgress })
   },
 
-  handleSectionChange: (sectionId, filtered, getProgress) => {
-    const saved = getProgress()
+  handleSectionChange: (sectionId, words, getProgress) => {
+    // When changing section, jump to the first word of that section
+    // within the global `words` array (used by Learn.jsx).
     let newIndex = 0
-    if (saved.lastWordId && filtered.length > 0) {
-      const idx = filtered.findIndex(w => w.id === saved.lastWordId)
+    if (Array.isArray(words) && words.length > 0) {
+      const idx = words.findIndex(w => w.section_id === sectionId)
       newIndex = idx >= 0 ? idx : 0
     }
+    const firstWordId = words && words[newIndex]?.id ? words[newIndex].id : null
+    if (firstWordId) saveProgress({ lastWordId: firstWordId })
     set({ selectedSection: sectionId, index: newIndex })
   },
 
-  onPrev: (filtered) => {
+  onPrev: (words) => {
     set((state) => {
-      const ni = (state.index - 1 + filtered.length) % filtered.length
-      const wordId = filtered[ni]?.id
+      const ni = (state.index - 1 + words.length) % words.length
+      const wordId = words[ni]?.id
       if (wordId) saveProgress({ lastWordId: wordId })
       return { index: ni }
     })
