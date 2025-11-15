@@ -24555,23 +24555,23 @@ const words = [
     "example_en": "I choose another book for story time.",
     "example_cht": "故事時間我再選一本書。"
   }
-];
+].sort((a, b) => {
+  if (a.section_id !== b.section_id) return a.section_id - b.section_id;
+  return a.id - b.id;
+});
 const sections = [{ "id": 1, "name": "自我認識", "number": 1 }, { "id": 2, "name": "家庭", "number": 2 }, { "id": 3, "name": "身體部位", "number": 3 }, { "id": 4, "name": "數字與顏色", "number": 4 }, { "id": 5, "name": "形狀與大小", "number": 5 }, { "id": 6, "name": "動物與昆蟲", "number": 6 }, { "id": 7, "name": "食物與飲料", "number": 7 }, { "id": 8, "name": "餐具與廚房", "number": 8 }, { "id": 9, "name": "衣物", "number": 9 }, { "id": 10, "name": "家與房間", "number": 10 }, { "id": 11, "name": "家具與物品", "number": 11 }, { "id": 12, "name": "玩具與遊戲", "number": 12 }, { "id": 13, "name": "學校與學習", "number": 13 }, { "id": 14, "name": "地點", "number": 14 }, { "id": 15, "name": "自然與天氣", "number": 15 }, { "id": 16, "name": "地形與自然環境", "number": 16 }, { "id": 17, "name": "材質", "number": 17 }, { "id": 18, "name": "基本動作", "number": 18 }, { "id": 19, "name": "手部動作", "number": 19 }, { "id": 20, "name": "感官動作", "number": 20 }, { "id": 21, "name": "口語動作", "number": 21 }, { "id": 22, "name": "思考與想像", "number": 22 }, { "id": 23, "name": "創造與建造", "number": 23 }, { "id": 24, "name": "日常活動", "number": 24 }, { "id": 25, "name": "互動行為", "number": 25 }, { "id": 26, "name": "改變狀態", "number": 26 }, { "id": 27, "name": "尋找與發現", "number": 27 }, { "id": 28, "name": "情緒與感受", "number": 28 }, { "id": 29, "name": "性質形容詞", "number": 29 }, { "id": 30, "name": "溫度與觸感", "number": 30 }, { "id": 31, "name": "速度與狀態", "number": 31 }, { "id": 32, "name": "程度與數量", "number": 32 }, { "id": 33, "name": "時間", "number": 33 }, { "id": 34, "name": "位置與方向", "number": 34 }, { "id": 35, "name": "連接詞與邏輯", "number": 35 }, { "id": 36, "name": "疑問詞", "number": 36 }, { "id": 37, "name": "代名詞", "number": 37 }, { "id": 38, "name": "冠詞與限定詞", "number": 38 }, { "id": 39, "name": "Be動詞與助動詞", "number": 39 }, { "id": 40, "name": "禮貌用語", "number": 40 }, { "id": 41, "name": "交通工具", "number": 41 }, { "id": 42, "name": "職業", "number": 42 }, { "id": 43, "name": "運動與比賽", "number": 43 }, { "id": 44, "name": "健康", "number": 44 }, { "id": 45, "name": "品德與行為", "number": 45 }, { "id": 46, "name": "購物與金錢", "number": 46 }, { "id": 47, "name": "選擇與決定", "number": 47 }, { "id": 48, "name": "機會與運氣", "number": 48 }, { "id": 49, "name": "數學", "number": 49 }, { "id": 50, "name": "科技", "number": 50 }, { "id": 51, "name": "故事與想像", "number": 51 }, { "id": 52, "name": "聲音", "number": 52 }, { "id": 53, "name": "光線與視覺", "number": 53 }, { "id": 54, "name": "其他常用動詞", "number": 54 }, { "id": 55, "name": "其他常用詞", "number": 55 }, { "id": 56, "name": "其他形容詞", "number": 56 }, { "id": 57, "name": "其他副詞", "number": 57 }, { "id": 58, "name": "動詞變化形", "number": 58 }, { "id": 59, "name": "其他", "number": 59 }, { "id": 60, "name": "核心常用字", "number": 60 }];
 const partsOfSpeech = [{ "id": 1, "tag": "Noun" }, { "id": 2, "tag": "Verb" }, { "id": 3, "tag": "Pronoun" }, { "id": 4, "tag": "Determiner" }, { "id": 5, "tag": "Adjective" }, { "id": 6, "tag": "Verb Phrase" }, { "id": 7, "tag": "Adverb" }, { "id": 8, "tag": "Preposition" }, { "id": 9, "tag": "Interjection" }, { "id": 10, "tag": "Conjunction" }, { "id": 11, "tag": "Modal Verb" }, { "id": 12, "tag": "Number" }, { "id": 13, "tag": "Contraction" }];
 function useWordData() {
-  const words$1 = words;
-  const sections$1 = sections;
-  const parts = partsOfSpeech;
   const loading = false;
   const error = null;
-  const sectionMap = reactExports.useMemo(() => Object.fromEntries(sections$1.map((s) => [s.id, s])), [sections$1]);
-  const posMap = reactExports.useMemo(() => Object.fromEntries(parts.map((p2) => [p2.id, p2])), [parts]);
+  const sectionMap = reactExports.useMemo(() => Object.fromEntries(sections.map((s) => [s.id, s])), [sections]);
+  const posMap = reactExports.useMemo(() => Object.fromEntries(partsOfSpeech.map((p2) => [p2.id, p2])), [partsOfSpeech]);
   const bySections = (sectionIds) => {
-    if (!Array.isArray(sectionIds) || sectionIds.length === 0) return words$1;
+    if (!Array.isArray(sectionIds) || sectionIds.length === 0) return words;
     const set = new Set(sectionIds);
-    return words$1.filter((w2) => set.has(w2.section_id));
+    return words.filter((w2) => set.has(w2.section_id));
   };
-  return { words: words$1, sections: sections$1, parts, sectionMap, posMap, bySections, loading, error };
+  return { words, sections, parts: partsOfSpeech, sectionMap, posMap, bySections, loading, error };
 }
 let playingCallback = null;
 function onPlayingChange(callback) {
@@ -24686,21 +24686,13 @@ function getProgress() {
   const d = read();
   return {
     learnedIds: new Set(d.learnedIds || []),
-    lastIndex: Number.isInteger(d.lastIndex) ? d.lastIndex : 0,
-    selectedSectionIds: Array.isArray(d.selectedSectionIds) ? d.selectedSectionIds : [],
-    range: d.range || { start: 0, end: null },
-    wordSpeed: typeof d.wordSpeed === "number" ? d.wordSpeed : 0.95,
-    exampleSpeed: typeof d.exampleSpeed === "number" ? d.exampleSpeed : 0.95
+    lastIndex: Number.isInteger(d.lastIndex) ? d.lastIndex : 0
   };
 }
-function saveProgress({ learnedIds, lastIndex, selectedSectionIds, range, wordSpeed, exampleSpeed }) {
+function saveProgress({ learnedIds, lastIndex }) {
   const data = read();
   if (learnedIds) data.learnedIds = Array.from(learnedIds);
   if (Number.isInteger(lastIndex)) data.lastIndex = lastIndex;
-  if (Array.isArray(selectedSectionIds)) data.selectedSectionIds = selectedSectionIds;
-  if (range) data.range = range;
-  if (typeof wordSpeed === "number") data.wordSpeed = wordSpeed;
-  if (typeof exampleSpeed === "number") data.exampleSpeed = exampleSpeed;
   write(data);
 }
 function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleClick }) {
@@ -24883,7 +24875,6 @@ const createImpl = (createState) => {
 const create = (createState) => createState ? createImpl(createState) : createImpl;
 const useLearnStore = create((set, get) => ({
   // State
-  selectedSection: null,
   learnedIds: /* @__PURE__ */ new Set(),
   sectionProgress: {},
   // { sectionId: { learned: number, total: number, percentage: number } }
@@ -24893,7 +24884,6 @@ const useLearnStore = create((set, get) => ({
   showSectionMenu: false,
   index: 0,
   // Actions
-  setSelectedSection: (selectedSection) => set({ selectedSection }),
   setLearnedIds: (learnedIds) => set({ learnedIds }),
   setSectionProgress: (sectionProgress) => set({ sectionProgress }),
   setExampleClickedId: (exampleClickedId) => set({ exampleClickedId }),
@@ -24912,15 +24902,26 @@ const useLearnStore = create((set, get) => ({
     });
     set({ sectionProgress });
   },
+  // Calculate progress for a single section and update only that entry
+  calculateSingleSectionProgress: (sectionId, bySections, learnedIds) => {
+    if (!sectionId || !bySections) return;
+    const sectionWords = bySections([sectionId]);
+    const learnedCount = sectionWords.filter((w2) => learnedIds.has(w2.id)).length;
+    const total = sectionWords.length;
+    const percentage = total > 0 ? Math.round(learnedCount / total * 100) : 0;
+    set((state) => {
+      const sp = { ...state.sectionProgress || {} };
+      sp[sectionId] = { learned: learnedCount, total, percentage };
+      return { sectionProgress: sp };
+    });
+  },
   initializeFromProgress: (words2, sections2, bySections) => {
     const saved = getProgress();
     const learnedIds = saved.learnedIds || /* @__PURE__ */ new Set();
-    let initialSection = null;
+    let initialIndex = 0;
     if (saved.lastWordId && words2.length > 0) {
-      const lastWord = words2.find((w2) => w2.id === saved.lastWordId);
-      initialSection = lastWord ? lastWord.section_id : sections2.length > 0 ? sections2[0].id : null;
-    } else {
-      initialSection = sections2.length > 0 ? sections2[0].id : null;
+      const idx = words2.findIndex((w2) => w2.id === saved.lastWordId);
+      initialIndex = idx >= 0 ? idx : 0;
     }
     const sectionProgress = {};
     if (bySections) {
@@ -24932,7 +24933,7 @@ const useLearnStore = create((set, get) => ({
         sectionProgress[section.id] = { learned: learnedCount, total, percentage };
       });
     }
-    set({ selectedSection: initialSection, learnedIds, sectionProgress });
+    set({ learnedIds, sectionProgress, index: initialIndex });
   },
   handleSectionChange: (sectionId, words2, getProgress2) => {
     var _a;
@@ -24943,27 +24944,35 @@ const useLearnStore = create((set, get) => ({
     }
     const firstWordId = words2 && ((_a = words2[newIndex]) == null ? void 0 : _a.id) ? words2[newIndex].id : null;
     if (firstWordId) saveProgress({});
-    set({ selectedSection: sectionId, index: newIndex });
+    set({ index: newIndex });
   },
-  onPrev: (words2) => {
-    set((state) => {
-      var _a;
-      const ni2 = (state.index - 1 + words2.length) % words2.length;
-      const wordId = (_a = words2[ni2]) == null ? void 0 : _a.id;
-      if (wordId) saveProgress({});
-      return { index: ni2 };
-    });
+  onPrev: (words2, current, bySections) => {
+    if (!Array.isArray(words2) || words2.length === 0) return;
+    const ni2 = (get().index - 1 + words2.length) % words2.length;
+    const newWord = words2[ni2];
+    set({ index: ni2 });
+    if (newWord == null ? void 0 : newWord.id) saveProgress({ lastWordId: newWord.id });
+    const affectedSection = current == null ? void 0 : current.section_id;
+    if (affectedSection && bySections) {
+      const { learnedIds } = get();
+      get().calculateSingleSectionProgress(affectedSection, bySections, learnedIds);
+    }
   },
-  onNext: (words2) => {
-    set((state) => {
-      var _a;
-      const ni2 = (state.index + 1) % words2.length;
-      const wordId = (_a = words2[ni2]) == null ? void 0 : _a.id;
-      if (wordId) saveProgress({});
-      return { index: ni2 };
-    });
+  onNext: (words2, current, bySections) => {
+    if (!Array.isArray(words2) || words2.length === 0) return;
+    const ni2 = (get().index + 1) % words2.length;
+    const newWord = words2[ni2];
+    set({ index: ni2 });
+    if (newWord == null ? void 0 : newWord.id) saveProgress({ lastWordId: newWord.id });
+    const affectedSection = current == null ? void 0 : current.section_id;
+    if (affectedSection && bySections) {
+      const { learnedIds } = get();
+      get().calculateSingleSectionProgress(affectedSection, bySections, learnedIds);
+    }
   },
-  toggleLearned: (id2, sections2, bySections) => {
+  toggleLearned: (current, sections2, bySections) => {
+    if (!current) return;
+    const id2 = current.id;
     set((state) => {
       const next = new Set(state.learnedIds);
       if (next.has(id2)) next.delete(id2);
@@ -24973,7 +24982,9 @@ const useLearnStore = create((set, get) => ({
     });
     if (sections2 && bySections) {
       const { learnedIds } = get();
-      get().calculateSectionProgress(sections2, bySections, learnedIds);
+      if (current && current.section_id) {
+        get().calculateSingleSectionProgress(current.section_id, bySections, learnedIds);
+      }
     }
   },
   handleProgressClick: () => {
@@ -24999,7 +25010,9 @@ const useLearnStore = create((set, get) => ({
       set({ isEditingProgress: false });
     }
   },
-  onExampleClick: (id2, sections2, bySections) => {
+  onExampleClick: (current, sections2, bySections) => {
+    if (!current) return;
+    const id2 = current.id;
     set({ exampleClickedId: id2 });
     const wasAdded = !get().learnedIds.has(id2);
     set((state) => {
@@ -25013,15 +25026,16 @@ const useLearnStore = create((set, get) => ({
     });
     if (wasAdded && sections2 && bySections) {
       const { learnedIds } = get();
-      get().calculateSectionProgress(sections2, bySections, learnedIds);
+      if (current && current.section_id) {
+        get().calculateSingleSectionProgress(current.section_id, bySections, learnedIds);
+      }
     }
   }
 }));
 function Learn() {
-  var _a;
+  var _a, _b;
   const { words: words2, sections: sections2, sectionMap, bySections } = useWordData();
   const {
-    selectedSection,
     learnedIds,
     sectionProgress,
     exampleClickedId,
@@ -25053,6 +25067,8 @@ function Learn() {
   }, [words2.length, setIndex]);
   const current = words2[index] || null;
   const pos = `${index + 1} / ${words2.length}`;
+  const section_id = (current == null ? void 0 : current.section_id) ?? (((_a = sections2[0]) == null ? void 0 : _a.id) ?? null);
+  const currentSection = section_id ? sectionMap[section_id] : null;
   reactExports.useEffect(() => {
     setExampleClickedId(null);
   }, [current == null ? void 0 : current.id, setExampleClickedId]);
@@ -25066,7 +25082,7 @@ function Learn() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [showSectionMenu, setShowSectionMenu]);
   if (!words2.length) return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { maxWidth: 900, width: "100%" }, children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedId: selectedSection, onChange: handleSectionChange }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(SectionPicker, { sections: sections2, selectedId: section_id, onChange: handleSectionChange }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "panel", children: "沒有符合的單字" })
   ] });
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
@@ -25079,12 +25095,12 @@ function Learn() {
             onClick: () => setShowSectionMenu(!showSectionMenu),
             style: { cursor: "pointer", userSelect: "none" },
             title: "點擊選擇類別",
-            children: sectionMap[current.section_id] ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-              sectionMap[current.section_id].number,
+            children: currentSection ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              currentSection.number,
               ". ",
-              sectionMap[current.section_id].name,
+              currentSection.name,
               /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontWeight: "bold", color: "#4A90E2", marginLeft: "12px" }, children: [
-                ((_a = sectionProgress[current.section_id]) == null ? void 0 : _a.percentage) || 0,
+                ((_b = sectionProgress[section_id]) == null ? void 0 : _b.percentage) || 0,
                 "%"
               ] })
             ] }) : "Section"
@@ -25119,15 +25135,15 @@ function Learn() {
                   style: {
                     padding: "12px 16px",
                     cursor: "pointer",
-                    background: s.id === selectedSection ? "#E3F2FD" : "white",
-                    fontWeight: s.id === selectedSection ? "bold" : "normal",
+                    background: s.id === section_id ? "#E3F2FD" : "white",
+                    fontWeight: s.id === section_id ? "bold" : "normal",
                     borderBottom: "1px solid #eee",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center"
                   },
                   onMouseEnter: (e) => e.target.style.background = "#F5F5F5",
-                  onMouseLeave: (e) => e.target.style.background = s.id === selectedSection ? "#E3F2FD" : "white",
+                  onMouseLeave: (e) => e.target.style.background = s.id === section_id ? "#E3F2FD" : "white",
                   children: [
                     /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
                       s.number,
@@ -25182,10 +25198,10 @@ function Learn() {
       {
         item: current,
         learned: learnedIds.has(current.id),
-        onPrev: () => onPrev(words2),
-        onNext: () => onNext(words2),
-        onToggleLearned: () => toggleLearned(current.id, sections2, bySections),
-        onExampleClick: () => onExampleClick(current.id, sections2, bySections)
+        onPrev: () => onPrev(words2, current, bySections),
+        onNext: () => onNext(words2, current, bySections),
+        onToggleLearned: () => toggleLearned(current, sections2, bySections),
+        onExampleClick: () => onExampleClick(current, sections2, bySections)
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between" }, children: [
@@ -25455,9 +25471,14 @@ function weightedPick(items, weights) {
   }
   return items[items.length - 1];
 }
-function sample(arr, k2, avoidId) {
+function sample(arr, k2, avoid) {
   const res = [];
-  const used = /* @__PURE__ */ new Set([avoidId]);
+  const used = /* @__PURE__ */ new Set();
+  if (avoid instanceof Set) {
+    for (const id2 of avoid) used.add(id2);
+  } else if (avoid !== void 0 && avoid !== null) {
+    used.add(avoid);
+  }
   while (res.length < k2 && used.size < arr.length) {
     const x2 = arr[Math.floor(Math.random() * arr.length)];
     if (used.has(x2.id)) continue;
@@ -25537,41 +25558,21 @@ const useQuizStore = create((set, get) => ({
     setAnswered(false);
     if (direction === "sentence") {
       const candidates = [];
-      if (item.sentence1) candidates.push(item.sentence1);
-      if (item.sentence2) candidates.push(item.sentence2);
-      if (item.example_en) candidates.push(item.example_en);
+      candidates.push(item.example_en);
       const sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : "";
       setCurrentSentence(sentenceText || "");
     } else {
       setCurrentSentence("");
     }
     if (answerType === "choice") {
-      let distractors;
-      if (filterMode === "learned") {
-        if (pool.length < 10) {
-          const usedIds = /* @__PURE__ */ new Set([item.id]);
-          const learnedDistractors = [];
-          const otherDistractors = [];
-          for (let i = 0; i < Math.min(2, pool.length); i++) {
-            const learned = sample(pool, 1, item.id);
-            learnedDistractors.push(...learned);
-            learned.forEach((d) => usedIds.add(d.id));
-          }
-          const needed = 3 - learnedDistractors.length;
-          while (otherDistractors.length < needed && usedIds.size < allWords.length) {
-            const candidate = allWords[Math.floor(Math.random() * allWords.length)];
-            if (!usedIds.has(candidate.id)) {
-              usedIds.add(candidate.id);
-              otherDistractors.push(candidate);
-            }
-          }
-          distractors = [...learnedDistractors, ...otherDistractors];
-        } else {
-          distractors = sample(pool, 3, item.id);
-        }
-      }
-      if (!distractors) {
-        distractors = sample(pool, 3, item.id);
+      const usedIds = /* @__PURE__ */ new Set([item.id]);
+      let distractors = sample(pool, 3, usedIds);
+      distractors.forEach((d) => usedIds.add(d.id));
+      if (distractors.length < 3) {
+        const needed = 3 - distractors.length;
+        const fromAll = sample(allWords, needed, usedIds);
+        distractors.push(...fromAll);
+        fromAll.forEach((d) => usedIds.add(d.id));
       }
       let opts;
       if (direction === "zh2en" || direction === "sentence") {
