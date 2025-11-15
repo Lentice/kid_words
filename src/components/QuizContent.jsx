@@ -41,6 +41,16 @@ export default function QuizContent({
     }
   }, [q, dir]);
 
+  // 自動在填空題答對後跳到下一題
+  useEffect(() => {
+    if (answerType === 'input' && correct === true) {
+      const t = setTimeout(() => {
+        if (typeof makeQuestion === 'function') makeQuestion();
+      }, 600);
+      return () => clearTimeout(t);
+    }
+  }, [answerType, correct, makeQuestion]);
+
   if (!q) return null;
   return (
     <>
