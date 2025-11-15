@@ -84,7 +84,7 @@ export const useQuizStore = create((set, get) => ({
     writeQuizState(newState)
   },
 
-  makeQuestion: (pool, speakWord, speakSentence, allWords = pool) => {
+  makeQuestion: (pool, allWords = pool) => {
     const { mode, answerType, quizState, setQ, setDir, setAnswer, setSelectedOption, setCorrect, setOptions, setAnswered, setCurrentSentence, filterMode } = get()
     if (pool.length === 0) { setQ(null); return }
 
@@ -117,21 +117,21 @@ export const useQuizStore = create((set, get) => ({
 
     if (answerType === 'choice') {
       let distractors
-      
+
       // 如果是學過的單字模式且學過的單字少於10個，特殊處理
       if (filterMode === 'learned') {
         if (pool.length < 10) {
           const usedIds = new Set([item.id])
           const learnedDistractors = []
           const otherDistractors = []
-          
+
           // 先嘗試從學過的單字中選最多2個干擾項
           for (let i = 0; i < Math.min(2, pool.length); i++) {
             const learned = sample(pool, 1, item.id)
             learnedDistractors.push(...learned)
             learned.forEach(d => usedIds.add(d.id))
           }
-          
+
           // 從所有單字中選擇剩餘的干擾項，湊足3個
           const needed = 3 - learnedDistractors.length
           while (otherDistractors.length < needed && usedIds.size < allWords.length) {
@@ -141,14 +141,19 @@ export const useQuizStore = create((set, get) => ({
               otherDistractors.push(candidate)
             }
           }
-          
+
           distractors = [...learnedDistractors, ...otherDistractors]
         } else {
           // 原本的邏輯：從pool中隨機選3個
           distractors = sample(pool, 3, item.id)
         }
       }
-      
+
+      // 如果還沒產生 distractors（非 learned 模式），從 pool 中選擇隨機干擾項
+      if (!distractors) {
+        distractors = sample(pool, 3, item.id)
+      }
+
       let opts
       if (direction === 'zh2en' || direction === 'sentence') {
         opts = [item.word, ...distractors.map(d => d.word)]
@@ -207,7 +212,9 @@ export const useQuizStore = create((set, get) => ({
 
   replayAudio: (speakWord, speakSentence) => {
     const { dir, q, currentSentence } = get()
-    if (dir === 'audio' && q) speakWord(q.word)
+    if ((dir === 'audio' || dir === 'en2zh') && q) {
+      speakWord(q.word)
+    }
     if (dir === 'sentence' && currentSentence) {
       speakSentence(currentSentence)
     }

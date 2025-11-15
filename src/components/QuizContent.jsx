@@ -36,7 +36,7 @@ export default function QuizContent({
 
   // 當題目是 audio 或 sentence 時自動播放一次
   useEffect(() => {
-    if (q && (dir === 'audio' || dir === 'sentence')) {
+    if (q && (dir === 'audio' || dir === 'sentence' || dir === 'en2zh')) {
       replayAudio();
     }
   }, [q, dir]);
@@ -141,7 +141,7 @@ export default function QuizContent({
                       borderRadius: '8px',
                       background: showWrong ? '#fff5f5' : showCorrect ? '#e8f5e9' : 'transparent',
                       cursor: 'pointer',
-                      fontSize: '18px',
+                      fontSize: dir === 'en2zh' ? '22px' : '24px',
                       textAlign: 'left',
                       transition: 'all 0.2s',
                       position: 'relative'

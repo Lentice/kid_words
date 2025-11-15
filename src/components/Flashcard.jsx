@@ -43,9 +43,29 @@ export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearn
       </button>
       <div className="card">
         <h2 className="word word-center" style={{ fontSize: getWordFontSize(), lineHeight: '44px' }}>
-          <span onClick={speakWord} title="點擊聽發音">
+          <button
+            onClick={() => {
+              try {
+                // consume any promise rejection to avoid uncaught errors
+                const p = speak(item.word, { rate: wordSpeed });
+                if (p && typeof p.catch === 'function') p.catch(() => {});
+              } catch (err) {
+                console.error('speak click handler error:', err);
+              }
+            }}
+            title="點擊聽發音"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: 0,
+              margin: 0,
+              cursor: 'pointer',
+              font: 'inherit',
+              color: 'inherit'
+            }}
+          >
             {item.word}
-          </span>
+          </button>
         </h2>
         <p className="meaning">{item.meaning_cht}</p>
       <div className="examples" onClick={speakExample} title="點擊聽例句">
