@@ -24842,6 +24842,8 @@ const useLearnStore = create((set, get) => ({
   // State
   selectedSection: null,
   learnedIds: /* @__PURE__ */ new Set(),
+  sectionProgress: {},
+  // { sectionId: { learned: number, total: number, percentage: number } }
   exampleClickedId: null,
   isEditingProgress: false,
   progressInput: "",
@@ -24850,12 +24852,24 @@ const useLearnStore = create((set, get) => ({
   // Actions
   setSelectedSection: (selectedSection) => set({ selectedSection }),
   setLearnedIds: (learnedIds) => set({ learnedIds }),
+  setSectionProgress: (sectionProgress) => set({ sectionProgress }),
   setExampleClickedId: (exampleClickedId) => set({ exampleClickedId }),
-  setIsEditingProgress: (isEditingProgress) => set({ isEditingProgress }),
   setProgressInput: (progressInput) => set({ progressInput }),
   setShowSectionMenu: (showSectionMenu) => set({ showSectionMenu }),
   setIndex: (index) => set({ index }),
-  initializeFromProgress: (words2, sections2) => {
+  // Calculate section progress
+  calculateSectionProgress: (sections2, bySections, learnedIds) => {
+    const sectionProgress = {};
+    sections2.forEach((section) => {
+      const sectionWords = bySections([section.id]);
+      const learnedCount = sectionWords.filter((w2) => learnedIds.has(w2.id)).length;
+      const total = sectionWords.length;
+      const percentage = total > 0 ? Math.round(learnedCount / total * 100) : 0;
+      sectionProgress[section.id] = { learned: learnedCount, total, percentage };
+    });
+    set({ sectionProgress });
+  },
+  initializeFromProgress: (words2, sections2, bySections) => {
     const saved = getProgress();
     const learnedIds = saved.learnedIds || /* @__PURE__ */ new Set();
     let initialSection = null;
@@ -24865,7 +24879,17 @@ const useLearnStore = create((set, get) => ({
     } else {
       initialSection = sections2.length > 0 ? sections2[0].id : null;
     }
-    set({ selectedSection: initialSection, learnedIds });
+    const sectionProgress = {};
+    if (bySections) {
+      sections2.forEach((section) => {
+        const sectionWords = bySections([section.id]);
+        const learnedCount = sectionWords.filter((w2) => learnedIds.has(w2.id)).length;
+        const total = sectionWords.length;
+        const percentage = total > 0 ? Math.round(learnedCount / total * 100) : 0;
+        sectionProgress[section.id] = { learned: learnedCount, total, percentage };
+      });
+    }
+    set({ selectedSection: initialSection, learnedIds, sectionProgress });
   },
   handleSectionChange: (sectionId, filtered, getProgress2) => {
     const saved = getProgress2();
@@ -24894,7 +24918,7 @@ const useLearnStore = create((set, get) => ({
       return { index: ni2 };
     });
   },
-  toggleLearned: (id2) => {
+  toggleLearned: (id2, sections2, bySections) => {
     set((state) => {
       const next = new Set(state.learnedIds);
       if (next.has(id2)) next.delete(id2);
@@ -24902,6 +24926,10 @@ const useLearnStore = create((set, get) => ({
       saveProgress({ learnedIds: next });
       return { learnedIds: next };
     });
+    if (sections2 && bySections) {
+      const { learnedIds } = get();
+      get().calculateSectionProgress(sections2, bySections, learnedIds);
+    }
   },
   handleProgressClick: () => {
     set({ isEditingProgress: true, progressInput: "" });
@@ -24926,8 +24954,9 @@ const useLearnStore = create((set, get) => ({
       set({ isEditingProgress: false });
     }
   },
-  onExampleClick: (id2) => {
+  onExampleClick: (id2, sections2, bySections) => {
     set({ exampleClickedId: id2 });
+    const wasAdded = !get().learnedIds.has(id2);
     set((state) => {
       if (!state.learnedIds.has(id2)) {
         const nextSet = new Set(state.learnedIds);
@@ -24937,20 +24966,25 @@ const useLearnStore = create((set, get) => ({
       }
       return state;
     });
+    if (wasAdded && sections2 && bySections) {
+      const { learnedIds } = get();
+      get().calculateSectionProgress(sections2, bySections, learnedIds);
+    }
   }
 }));
 function Learn() {
+  var _a;
   const { words: words2, sections: sections2, sectionMap, bySections } = useWordData();
   const {
     selectedSection,
     learnedIds,
+    sectionProgress,
     exampleClickedId,
     isEditingProgress,
     progressInput,
     showSectionMenu,
     index,
     setExampleClickedId,
-    setIsEditingProgress,
     setProgressInput,
     setShowSectionMenu,
     setIndex,
@@ -24966,9 +25000,9 @@ function Learn() {
   } = useLearnStore();
   reactExports.useEffect(() => {
     if (words2.length > 0 && sections2.length > 0) {
-      initializeFromProgress(words2, sections2);
+      initializeFromProgress(words2, sections2, bySections);
     }
-  }, [words2, sections2, initializeFromProgress]);
+  }, [words2.length, sections2.length]);
   const filtered = reactExports.useMemo(() => {
     if (!selectedSection) return [];
     const list = bySections([selectedSection]);
@@ -25005,7 +25039,15 @@ function Learn() {
             onClick: () => setShowSectionMenu(!showSectionMenu),
             style: { cursor: "pointer", userSelect: "none" },
             title: "點擊選擇類別",
-            children: sectionMap[current.section_id] ? `${sectionMap[current.section_id].number}. ${sectionMap[current.section_id].name}` : "Section"
+            children: sectionMap[current.section_id] ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              sectionMap[current.section_id].number,
+              ". ",
+              sectionMap[current.section_id].name,
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontWeight: "bold", color: "#4A90E2", marginLeft: "12px" }, children: [
+                ((_a = sectionProgress[current.section_id]) == null ? void 0 : _a.percentage) || 0,
+                "%"
+              ] })
+            ] }) : "Section"
           }
         ),
         showSectionMenu && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -25025,30 +25067,42 @@ function Learn() {
               maxHeight: "300px",
               overflowY: "auto"
             },
-            children: sections2.map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "div",
-              {
-                onClick: () => {
-                  handleSectionChange(s.id, filtered, getProgress);
-                  setShowSectionMenu(false);
+            children: sections2.map((s) => {
+              const progress = sectionProgress[s.id] || { percentage: 0 };
+              return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  onClick: () => {
+                    handleSectionChange(s.id, filtered, getProgress);
+                    setShowSectionMenu(false);
+                  },
+                  style: {
+                    padding: "12px 16px",
+                    cursor: "pointer",
+                    background: s.id === selectedSection ? "#E3F2FD" : "white",
+                    fontWeight: s.id === selectedSection ? "bold" : "normal",
+                    borderBottom: "1px solid #eee",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                  },
+                  onMouseEnter: (e) => e.target.style.background = "#F5F5F5",
+                  onMouseLeave: (e) => e.target.style.background = s.id === selectedSection ? "#E3F2FD" : "white",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+                      s.number,
+                      ". ",
+                      s.name
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { style: { fontWeight: "bold", color: "#4A90E2", marginLeft: "16px" }, children: [
+                      progress.percentage,
+                      "%"
+                    ] })
+                  ]
                 },
-                style: {
-                  padding: "12px 16px",
-                  cursor: "pointer",
-                  background: s.id === selectedSection ? "#E3F2FD" : "white",
-                  fontWeight: s.id === selectedSection ? "bold" : "normal",
-                  borderBottom: "1px solid #eee"
-                },
-                onMouseEnter: (e) => e.target.style.background = "#F5F5F5",
-                onMouseLeave: (e) => e.target.style.background = s.id === selectedSection ? "#E3F2FD" : "white",
-                children: [
-                  s.number,
-                  ". ",
-                  s.name
-                ]
-              },
-              s.id
-            ))
+                s.id
+              );
+            })
           }
         )
       ] }),
@@ -25090,8 +25144,8 @@ function Learn() {
         learned: learnedIds.has(current.id),
         onPrev: () => onPrev(filtered),
         onNext: () => onNext(filtered),
-        onToggleLearned: () => toggleLearned(current.id),
-        onExampleClick: () => onExampleClick(current.id)
+        onToggleLearned: () => toggleLearned(current.id, sections2, bySections),
+        onExampleClick: () => onExampleClick(current.id, sections2, bySections)
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "row", style: { justifyContent: "space-between" }, children: [
@@ -25669,8 +25723,6 @@ const useAdminStore = create((set, get) => ({
   selected: [],
   // Actions
   setSelected: (selected) => set({ selected }),
-  initializeFromProgress: () => {
-  },
   clearAll: () => {
     saveProgress({ learnedIds: /* @__PURE__ */ new Set(), lastIndex: 0 });
     alert("已清除所有學習記錄");
@@ -25698,13 +25750,9 @@ function Admin() {
   const {
     selected,
     setSelected,
-    initializeFromProgress,
     clearAll,
     clearSelectedSections
   } = useAdminStore();
-  reactExports.useEffect(() => {
-    initializeFromProgress();
-  }, [initializeFromProgress]);
   const filtered = reactExports.useMemo(() => bySections(selected), [bySections, selected, words2]);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "stack", style: { gap: 16, maxWidth: 900, width: "100%" }, children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "panel row", style: { justifyContent: "space-between" }, children: [
