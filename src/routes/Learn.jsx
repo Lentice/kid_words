@@ -45,12 +45,12 @@ export default function Learn(){
   },[bySections, selectedSection, words])
 
   useEffect(()=>{
-    // if current index exceeds filtered length, reset to 0
-    if (index >= filtered.length) setIndex(0)
-  },[filtered.length, setIndex])
+    // if current index exceeds words length, reset to 0
+    if (index >= words.length) setIndex(0)
+  },[words.length, setIndex])
 
-  const current = filtered[index] || null
-  const pos = `${index+1} / ${filtered.length}`
+  const current = words[index] || null
+  const pos = `${index+1} / ${words.length}`
 
   useEffect(()=>{
     setExampleClickedId(null)
@@ -146,11 +146,11 @@ export default function Learn(){
             type="number"
             value={progressInput}
             onChange={(e) => setProgressInput(e.target.value)}
-            onBlur={() => handleProgressSubmit(filtered)}
-            onKeyDown={(e) => handleProgressKeyDown(e, filtered)}
+            onBlur={() => handleProgressSubmit(words)}
+            onKeyDown={(e) => handleProgressKeyDown(e, words)}
             autoFocus
             min="1"
-            max={filtered.length}
+            max={words.length}
             style={{
               width: '80px',
               padding: '4px 8px',
@@ -174,8 +174,8 @@ export default function Learn(){
       <Flashcard
         item={current}
         learned={learnedIds.has(current.id)}
-        onPrev={() => onPrev(filtered)}
-        onNext={() => onNext(filtered)}
+        onPrev={() => onPrev(words)}
+        onNext={() => onNext(words)}
         onToggleLearned={()=>toggleLearned(current.id, sections, bySections)}
         onExampleClick={()=>onExampleClick(current.id, sections, bySections)}
       />

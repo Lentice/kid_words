@@ -81,10 +81,10 @@ export const useLearnStore = create((set, get) => ({
     })
   },
 
-  onNext: (filtered) => {
+  onNext: (words) => {
     set((state) => {
-      const ni = (state.index + 1) % filtered.length
-      const wordId = filtered[ni]?.id
+      const ni = (state.index + 1) % words.length
+      const wordId = words[ni]?.id
       if (wordId) saveProgress({ lastWordId: wordId })
       return { index: ni }
     })
@@ -109,22 +109,22 @@ export const useLearnStore = create((set, get) => ({
     set({ isEditingProgress: true, progressInput: '' })
   },
 
-  handleProgressSubmit: (filtered) => {
+  handleProgressSubmit: (words) => {
     const { progressInput } = get()
     const num = parseInt(progressInput, 10)
-    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
+    if (!isNaN(num) && num >= 1 && num <= words.length) {
       const newIndex = num - 1
       set({ index: newIndex, isEditingProgress: false })
-      const wordId = filtered[newIndex]?.id
+      const wordId = words[newIndex]?.id
       if (wordId) saveProgress({ lastWordId: wordId })
     } else {
       set({ isEditingProgress: false })
     }
   },
 
-  handleProgressKeyDown: (e, filtered) => {
+  handleProgressKeyDown: (e, words) => {
     if (e.key === 'Enter') {
-      get().handleProgressSubmit(filtered)
+      get().handleProgressSubmit(words)
     } else if (e.key === 'Escape') {
       set({ isEditingProgress: false })
     }
