@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import useWordData from '../hooks/useWordData'
 import SectionPicker from '../components/SectionPicker'
-import { getProgress, saveProgress } from '../utils/progress'
+import { getProgress } from '../utils/progress'
+import { useAdminStore } from '../stores/adminStore'
 
 export default function Admin(){
   const { words, sections, loading, error, bySections } = useWordData()
@@ -10,37 +11,19 @@ export default function Admin(){
   const learnedCount = learnedIds.size
   const total = words.length
 
-  const [selected, setSelected] = useState([])
-  const [wordSpeed, setWordSpeed] = useState(prog.wordSpeed)
-  const [exampleSpeed, setExampleSpeed] = useState(prog.exampleSpeed)
+  const {
+    selected,
+    setSelected,
+    initializeFromProgress,
+    clearAll,
+    clearSelectedSections
+  } = useAdminStore()
+
+  useEffect(() => {
+    initializeFromProgress()
+  }, [initializeFromProgress])
+
   const filtered = useMemo(()=>bySections(selected),[bySections, selected, words])
-
-  const clearAll = () => {
-    saveProgress({ learnedIds: new Set(), lastIndex: 0 })
-    alert('已清除所有學習記錄')
-    location.reload()
-  }
-
-  const clearSelectedSections = () => {
-    if (selected.length === 0) return
-    const set = new Set(learnedIds)
-    for (const w of filtered){ set.delete(w.id) }
-    saveProgress({ learnedIds: set })
-    alert('已清除所選 Section 的學習記錄')
-    location.reload()
-  }
-
-  const handleWordSpeedChange = (e) => {
-    const speed = parseFloat(e.target.value)
-    setWordSpeed(speed)
-    saveProgress({ wordSpeed: speed })
-  }
-
-  const handleExampleSpeedChange = (e) => {
-    const speed = parseFloat(e.target.value)
-    setExampleSpeed(speed)
-    saveProgress({ exampleSpeed: speed })
-  }
 
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
@@ -61,42 +44,10 @@ export default function Admin(){
         </div>
       </div>
 
-      {/* <div className="panel stack" style={{gap:16}}>
-        <strong>🔊 發音速度設定</strong>
-        <div className="stack" style={{gap:12}}>
-          <div className="row" style={{gap:16, alignItems:'center'}}>
-            <label style={{minWidth:100}}>單字速度：</label>
-            <input 
-              type="range" 
-              min="0.5" 
-              max="1.5" 
-              step="0.05" 
-              value={wordSpeed}
-              onChange={handleWordSpeedChange}
-              style={{flex:1}}
-            />
-            <span className="chip" style={{minWidth:60, textAlign:'center'}}>{wordSpeed.toFixed(2)}x</span>
-          </div>
-          <div className="row" style={{gap:16, alignItems:'center'}}>
-            <label style={{minWidth:100}}>例句速度：</label>
-            <input 
-              type="range" 
-              min="0.5" 
-              max="1.5" 
-              step="0.05" 
-              value={exampleSpeed}
-              onChange={handleExampleSpeedChange}
-              style={{flex:1}}
-            />
-            <span className="chip" style={{minWidth:60, textAlign:'center'}}>{exampleSpeed.toFixed(2)}x</span>
-          </div>
-        </div>
-      </div> */}
-
       <SectionPicker sections={sections} selectedIds={selected} onChange={setSelected} />
       <div className="panel row" style={{justifyContent:'space-between'}}>
         <div>所選 Section 單字數：{filtered.length}</div>
-        <button className="btn secondary" onClick={clearSelectedSections} disabled={selected.length===0}>清除所選 Section 記錄</button>
+        <button className="btn secondary" onClick={() => clearSelectedSections(filtered)} disabled={selected.length===0}>清除所選 Section 記錄</button>
       </div>
     </div>
   )

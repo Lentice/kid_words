@@ -1,28 +1,42 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 import useWordData from '../hooks/useWordData'
 import Flashcard from '../components/Flashcard'
 import SectionPicker from '../components/SectionPicker'
-import { getProgress, saveProgress } from '../utils/progress'
+import { getProgress } from '../utils/progress'
+import { useLearnStore } from '../stores/learnStore'
 
 export default function Learn(){
   const { words, sections, sectionMap, bySections, loading, error } = useWordData()
-  const saved = useMemo(()=>getProgress(),[])
-  
-  // 根據最後學習的單字 ID 找到對應的類別
-  const initialSection = useMemo(() => {
-    if (saved.lastWordId && words.length > 0) {
-      const lastWord = words.find(w => w.id === saved.lastWordId)
-      return lastWord ? lastWord.section_id : (sections.length > 0 ? sections[0].id : null)
-    }
-    return sections.length > 0 ? sections[0].id : null
-  }, [saved.lastWordId, words, sections])
+  const {
+    selectedSection,
+    learnedIds,
+    exampleClickedId,
+    isEditingProgress,
+    progressInput,
+    showSectionMenu,
+    index,
+    setExampleClickedId,
+    setIsEditingProgress,
+    setProgressInput,
+    setShowSectionMenu,
+    setIndex,
+    initializeFromProgress,
+    handleSectionChange,
+    onPrev,
+    onNext,
+    toggleLearned,
+    handleProgressClick,
+    handleProgressSubmit,
+    handleProgressKeyDown,
+    onExampleClick
+  } = useLearnStore()
 
-  const [selectedSection, setSelectedSection] = useState(initialSection)
-  const [learnedIds, setLearnedIds] = useState(saved.learnedIds || new Set())
-  const [exampleClickedId, setExampleClickedId] = useState(null)
-  const [isEditingProgress, setIsEditingProgress] = useState(false)
-  const [progressInput, setProgressInput] = useState('')
-  const [showSectionMenu, setShowSectionMenu] = useState(false)
+  // Initialize from progress on mount
+  useEffect(() => {
+    if (words.length > 0 && sections.length > 0) {
+      initializeFromProgress(words, sections)
+    }
+  }, [words, sections, initializeFromProgress])
 
   const filtered = useMemo(()=>{
     if (!selectedSection) return []
@@ -30,96 +44,17 @@ export default function Learn(){
     return list
   },[bySections, selectedSection, words])
 
-  // 根據最後學習的單字 ID 找到在當前類別中的索引
-  const initialIndex = useMemo(() => {
-    if (saved.lastWordId && filtered.length > 0) {
-      const idx = filtered.findIndex(w => w.id === saved.lastWordId)
-      return idx >= 0 ? idx : 0
-    }
-    return 0
-  }, [saved.lastWordId, filtered])
-
-  const [index, setIndex] = useState(initialIndex)
-
   useEffect(()=>{
     // if current index exceeds filtered length, reset to 0
     if (index >= filtered.length) setIndex(0)
-  },[filtered.length])
-
-  const handleSectionChange = (sectionId) => {
-    setSelectedSection(sectionId)
-    setIndex(0)
-  }
+  },[filtered.length, setIndex])
 
   const current = filtered[index] || null
   const pos = `${index+1} / ${filtered.length}`
 
   useEffect(()=>{
     setExampleClickedId(null)
-  },[current?.id])
-
-  useEffect(()=>{
-    if (exampleClickedId !== null){
-      setLearnedIds(prev => {
-        if (!prev.has(exampleClickedId)) {
-          const nextSet = new Set(prev)
-          nextSet.add(exampleClickedId)
-          saveProgress({ learnedIds: nextSet })
-          return nextSet
-        }
-        return prev
-      })
-    }
-  },[exampleClickedId])
-
-  const onPrev = () => {
-    setIndex(i=>{
-      const ni = (i-1+filtered.length)%filtered.length
-      const wordId = filtered[ni]?.id
-      if (wordId) saveProgress({ lastWordId: wordId })
-      return ni
-    })
-  }
-  const onNext = () => {
-    setIndex(i=>{
-      const ni = (i+1)%filtered.length
-      const wordId = filtered[ni]?.id
-      if (wordId) saveProgress({ lastWordId: wordId })
-      return ni
-    })
-  }
-
-  const toggleLearned = (id) => {
-    const next = new Set(learnedIds)
-    if (next.has(id)) next.delete(id)
-    else next.add(id)
-    setLearnedIds(next)
-    saveProgress({ learnedIds: next })
-  }
-
-  const handleProgressClick = () => {
-    setIsEditingProgress(true)
-    setProgressInput('')
-  }
-
-  const handleProgressSubmit = () => {
-    const num = parseInt(progressInput, 10)
-    if (!isNaN(num) && num >= 1 && num <= filtered.length) {
-      const newIndex = num - 1
-      setIndex(newIndex)
-      const wordId = filtered[newIndex]?.id
-      if (wordId) saveProgress({ lastWordId: wordId })
-    }
-    setIsEditingProgress(false)
-  }
-
-  const handleProgressKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleProgressSubmit()
-    } else if (e.key === 'Escape') {
-      setIsEditingProgress(false)
-    }
-  }
+  },[current?.id, setExampleClickedId])
 
   // 點擊外部關閉選單
   useEffect(() => {
@@ -130,7 +65,7 @@ export default function Learn(){
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [showSectionMenu])
+  }, [showSectionMenu, setShowSectionMenu])
 
   if (loading) return <div>載入中…</div>
   if (error) return <div>載入資料時發生錯誤</div>
@@ -174,7 +109,7 @@ export default function Learn(){
                 <div
                   key={s.id}
                   onClick={() => {
-                    handleSectionChange(s.id)
+                    handleSectionChange(s.id, filtered, getProgress)
                     setShowSectionMenu(false)
                   }}
                   style={{
@@ -198,8 +133,8 @@ export default function Learn(){
             type="number"
             value={progressInput}
             onChange={(e) => setProgressInput(e.target.value)}
-            onBlur={handleProgressSubmit}
-            onKeyDown={handleProgressKeyDown}
+            onBlur={() => handleProgressSubmit(filtered)}
+            onKeyDown={(e) => handleProgressKeyDown(e, filtered)}
             autoFocus
             min="1"
             max={filtered.length}
@@ -226,10 +161,10 @@ export default function Learn(){
       <Flashcard
         item={current}
         learned={learnedIds.has(current.id)}
-        onPrev={onPrev}
-        onNext={onNext}
+        onPrev={() => onPrev(filtered)}
+        onNext={() => onNext(filtered)}
         onToggleLearned={()=>toggleLearned(current.id)}
-        onExampleClick={()=>setExampleClickedId(current.id)}
+        onExampleClick={()=>onExampleClick(current.id)}
       />
       <div className="row" style={{justifyContent:'space-between'}}>
         <div className="progress">已學會:{learnedIds.size} / {words.length}</div>

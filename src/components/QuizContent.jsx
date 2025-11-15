@@ -14,16 +14,14 @@ export default function QuizContent({
   correct,
   setSelectedOption,
   setCorrect,
-  setCount,
-  setScore,
   makeQuestion,
-  writeQuizState,
-  qs,
   answerType,
   answer,
   setAnswer,
   check,
-  next
+  next,
+  selectOption,
+  target
 }) {
   if (!q) return null;
   return (
@@ -79,7 +77,6 @@ export default function QuizContent({
           {answerType === 'mcq' ? (
             <div className="stack" style={{gap:10}}>
               {options.map(opt => {
-                const target = (dir==='zh2en') ? q.word : q.meaning_cht;
                 const isCorrectAnswer = opt === target;
                 const isSelected = selectedOption === opt;
                 const showWrong = isSelected && correct === false;
@@ -95,23 +92,9 @@ export default function QuizContent({
                         return;
                       }
                       
-                      setSelectedOption(opt);
-                      const ok = opt === target;
-                      
-                      if (ok) {
-                        setCorrect(true);
-                        setCount(c=>c+1);
-                        setScore(s=>s+1);
-                        const cur = qs.current;
-                        if (cur.wrongCounts[q.id] > 0) cur.wrongCounts[q.id] -= 1;
-                        writeQuizState(cur);
+                      const isCorrect = selectOption(opt, target);
+                      if (isCorrect) {
                         setTimeout(() => makeQuestion(), 300);
-                      } else {
-                        setCorrect(false);
-                        setCount(c=>c+1);
-                        const cur = qs.current;
-                        cur.wrongCounts[q.id] = (cur.wrongCounts[q.id] || 0) + 1;
-                        writeQuizState(cur);
                       }
                     }} 
                     type="button" 
