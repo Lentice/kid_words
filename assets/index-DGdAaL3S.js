@@ -24745,8 +24745,8 @@ function Flashcard({ item, learned, onPrev, onNext, onToggleLearned, onExampleCl
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "zh", children: item.example_cht })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "controls", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, children: "< 上一個" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, children: "下一個 >" })
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn secondary", onClick: onPrev, style: { fontSize: "16px" }, children: "< 上一個" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "btn", onClick: onNext, style: { fontSize: "16px" }, children: "下一個 >" })
       ] })
     ] })
   ] });
