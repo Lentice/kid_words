@@ -1,13 +1,10 @@
 import { useMemo } from 'react'
-import { words as wordsData } from '../data/words.js'
-import { sections as sectionsData } from '../data/sections.js'
-import { partsOfSpeech as partsData } from '../data/partsOfSpeech.js'
+import { words } from '../data/words.js'
+import { sections } from '../data/sections.js'
+import { partsOfSpeech as parts } from '../data/partsOfSpeech.js'
 
 export function useWordData() {
   // Data is now imported directly, so no loading state needed
-  const words = wordsData
-  const sections = sectionsData
-  const parts = partsData
   const loading = false
   const error = null
 
