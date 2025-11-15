@@ -24602,7 +24602,11 @@ function speak(text, { lang = "en-US", rate = 0.95, pitch = 1 } = {}) {
         if (playingCallback) playingCallback(false);
         reject(ev || new Error("SpeechSynthesis error"));
       };
-      window.speechSynthesis.speak(utter);
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => speak(text);
+        return;
+      }
     } catch (err) {
       if (playingCallback) playingCallback(false);
       reject(err);
@@ -25556,24 +25560,29 @@ const useQuizStore = create((set, get) => ({
     setSelectedOption(null);
     setCorrect(null);
     setAnswered(false);
+    let sentenceText = "";
     if (direction === "sentence") {
       const candidates = [];
       candidates.push(item.example_en);
-      const sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : "";
+      sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : "";
       setCurrentSentence(sentenceText || "");
     } else {
       setCurrentSentence("");
     }
     if (answerType === "choice") {
       const usedIds = /* @__PURE__ */ new Set([item.id]);
+      const forbidden = direction === "sentence" && sentenceText ? new Set(sentenceText.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean)) : null;
+      const pickFrom = (src, n2) => {
+        const candidates = src.filter((w2) => !usedIds.has(w2.id) && !(forbidden && w2.word && forbidden.has(String(w2.word).toLowerCase())));
+        const picked = sample(candidates, n2, usedIds);
+        picked.forEach((p2) => usedIds.add(p2.id));
+        return picked;
+      };
       let distractors = sample(pool, 3, usedIds);
+      if (forbidden) distractors = distractors.filter((d) => !(d.word && forbidden.has(String(d.word).toLowerCase())));
       distractors.forEach((d) => usedIds.add(d.id));
-      if (distractors.length < 3) {
-        const needed = 3 - distractors.length;
-        const fromAll = sample(allWords, needed, usedIds);
-        distractors.push(...fromAll);
-        fromAll.forEach((d) => usedIds.add(d.id));
-      }
+      if (distractors.length < 3) distractors.push(...pickFrom(pool, 3 - distractors.length));
+      if (distractors.length < 3) distractors.push(...pickFrom(allWords, 3 - distractors.length));
       let opts;
       if (direction === "zh2en" || direction === "sentence") {
         opts = [item.word, ...distractors.map((d) => d.word)];
