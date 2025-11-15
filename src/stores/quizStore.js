@@ -108,10 +108,11 @@ export const useQuizStore = create((set, get) => ({
     setAnswered(false)
     
     // 如果是例句模式，預先選擇並保存例句
+    let sentenceText = ''
     if (direction === 'sentence') {
       const candidates = []
       candidates.push(item.example_en)
-      const sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : ''
+      sentenceText = candidates.length ? candidates[Math.floor(Math.random() * candidates.length)] : ''
       setCurrentSentence(sentenceText || '')
     } else {
       setCurrentSentence('')
@@ -120,16 +121,23 @@ export const useQuizStore = create((set, get) => ({
     if (answerType === 'choice') {
       // 通用流程：先從 pool 中嘗試取最多 3 個（避開 item），若不足再從 allWords 補足。
       const usedIds = new Set([item.id])
+      const forbidden = direction === 'sentence' && sentenceText
+        ? new Set(sentenceText.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean))
+        : null
+
+      const pickFrom = (src, n) => {
+        const candidates = src.filter(w => !usedIds.has(w.id) && !(forbidden && w.word && forbidden.has(String(w.word).toLowerCase())))
+        const picked = sample(candidates, n, usedIds)
+        picked.forEach(p => usedIds.add(p.id))
+        return picked
+      }
+
       let distractors = sample(pool, 3, usedIds)
+      if (forbidden) distractors = distractors.filter(d => !(d.word && forbidden.has(String(d.word).toLowerCase())))
       distractors.forEach(d => usedIds.add(d.id))
 
-      // 若還不夠，從 allWords 中補足
-      if (distractors.length < 3) {
-        const needed = 3 - distractors.length
-        const fromAll = sample(allWords, needed, usedIds)
-        distractors.push(...fromAll)
-        fromAll.forEach(d => usedIds.add(d.id))
-      }
+      if (distractors.length < 3) distractors.push(...pickFrom(pool, 3 - distractors.length))
+      if (distractors.length < 3) distractors.push(...pickFrom(allWords, 3 - distractors.length))
 
       let opts
       if (direction === 'zh2en' || direction === 'sentence') {
