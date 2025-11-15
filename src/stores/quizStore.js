@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 
 const QUIZ_KEY = 'kids-english-quiz-v1'
 
@@ -35,7 +34,7 @@ function sample(arr, k, avoidId) {
 export const useQuizStore = create((set, get) => ({
   // Options state
   selected: [],
-  filterMode: 'learned', // learned | sections
+  filterMode: 'sections', // learned | sections
   mode: 'mixed', // en2zh | zh2en | audio | mixed
   answerType: 'choice', // choice | input
 

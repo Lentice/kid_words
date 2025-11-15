@@ -53,8 +53,8 @@ export default function Flashcard({ item, learned, onPrev, onNext, onToggleLearn
         <div className="zh">{item.example_cht}</div>
       </div>
       <div className="controls">
-        <button className="btn secondary" onClick={onPrev}>&lt; 上一個</button>
-        <button className="btn" onClick={onNext}>下一個 &gt;</button>
+        <button className="btn secondary" onClick={onPrev} style={{ fontSize: '16px' }}>&lt; 上一個</button>
+        <button className="btn" onClick={onNext} style={{ fontSize: '16px' }}>下一個 &gt;</button>
       </div>
       </div>
     </div>

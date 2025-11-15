@@ -5,13 +5,13 @@ export default function QuizOptions({ filterMode, setFilterMode, selected, setSe
       <div className="stack" style={{gap:12}}>
         <div style={{fontSize:'15px', fontWeight:'500', color:'#555'}}>📚 選擇題庫</div>
         <div className="row" style={{flexWrap:'wrap', gap:16, alignItems:'center'}}>
-          <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='learned' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
-            <input type="radio" name="filter" checked={filterMode==='learned'} onChange={()=>setFilterMode('learned')} /> 
-            只出已學過
-          </label>
           <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='sections' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
             <input type="radio" name="filter" checked={filterMode==='sections'} onChange={()=>setFilterMode('sections')} /> 
             指定主題
+          </label>
+          <label className="row" style={{gap:8, cursor:'pointer', padding:'6px 12px', background: filterMode==='learned' ? '#E3F2FD' : 'transparent', borderRadius:'8px', transition:'background 0.2s'}}>
+            <input type="radio" name="filter" checked={filterMode==='learned'} onChange={()=>setFilterMode('learned')} /> 
+            只出已學過
           </label>
           {filterMode === 'sections' && (
             <select value={selected[0]||''} onChange={e=>setSelected(e.target.value ? [e.target.value] : [])} style={{flex:'1', minWidth:'180px', maxWidth:'300px', marginLeft: 'auto', marginRight: 'auto'}}>
