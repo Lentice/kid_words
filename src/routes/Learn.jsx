@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import useWordData from '../hooks/useWordData'
 import Flashcard from '../components/Flashcard'
 import SectionPicker from '../components/SectionPicker'

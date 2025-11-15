@@ -3,6 +3,10 @@
 
 // 用於單字發音 - 快速簡潔
 export function speak(text, { lang = 'en-US', rate = 0.95, pitch = 1.0 } = {}) {
+  if (!('speechSynthesis' in window)) {
+    console.warn('Speech Synthesis not supported in this browser')
+    return false
+  }
   try {
     window.speechSynthesis.cancel()
     const utter = new SpeechSynthesisUtterance(text)

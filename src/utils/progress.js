@@ -7,7 +7,11 @@ function read() {
 }
 
 function write(data) {
-  localStorage.setItem(KEY, JSON.stringify(data))
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data))
+  } catch (error) {
+    console.warn('Failed to save progress to localStorage:', error)
+  }
 }
 
 export function getProgress() {

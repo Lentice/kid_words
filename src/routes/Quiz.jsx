@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import useWordData from '../hooks/useWordData'
-import SectionPicker from '../components/SectionPicker'
 import QuizOptions from '../components/QuizOptions'
 import QuizContent from '../components/QuizContent'
 import { getProgress } from '../utils/progress'
@@ -77,7 +76,7 @@ export default function Quiz(){
 
   const accuracy = count ? Math.round(score*100/count) : 0
 
-  const makeQuestion = () => {
+  const makeQuestion = useCallback(() => {
     if (pool.length === 0){ setQ(null); return }
     // weighted random by wrongCounts + 1
     const weights = pool.map(w => (qs.current.wrongCounts[w.id] || 0) + 1)
@@ -114,7 +113,7 @@ export default function Quiz(){
     if (direction === 'audio'){
       setTimeout(()=>speakWithConfig(item.word), 50)
     }
-  }
+  }, [pool, mode, answerType])
 
   const start = () => { setStarted(true); makeQuestion() }
 
@@ -132,28 +131,19 @@ export default function Quiz(){
   const check = (e) => {
     if (e) e.preventDefault()
     if (!q) return
-    let ok = false
-    if (answerType === 'mcq'){
-      const target = (dir==='zh2en') ? q.word : q.meaning_cht
-      ok = selectedOption === target
-    } else {
-      const user = normalize(answer)
-      const target = normalize(dir==='zh2en' ? q.word : q.meaning_cht)
-      ok = user === target
-    }
+    const user = normalize(answer)
+    const target = normalize(dir==='zh2en' ? q.word : q.meaning_cht)
+    const ok = user === target
     setCorrect(ok)
     setCount(c=>c+1)
-    if (ok) setScore(s=>s+1)
+    if (ok) {
+      setScore(s=>s+1)
+    }
     // update weights
     const cur = qs.current
     if (!ok){ cur.wrongCounts[q.id] = (cur.wrongCounts[q.id]||0) + 1 }
     else if (cur.wrongCounts[q.id] > 0){ cur.wrongCounts[q.id] -= 1 }
     writeQuizState(cur)
-    
-    // 選擇題答對自動下一題
-    if (answerType === 'mcq' && ok) {
-      setTimeout(() => makeQuestion(), 800)
-    }
   }
 
   const next = () => makeQuestion()

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { speak, googleTTS } from '../utils/speech'
 import { getProgress } from '../utils/progress'
 

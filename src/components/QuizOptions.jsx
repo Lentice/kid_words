@@ -1,4 +1,3 @@
-import React from 'react';
 
 export default function QuizOptions({ filterMode, setFilterMode, selected, setSelected, sections, mode, setMode, answerType, setAnswerType, pool, start }) {
   return (
