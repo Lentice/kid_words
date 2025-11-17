@@ -24404,7 +24404,7 @@ const words = [
   },
   {
     "id": 1251,
-    "section_id": 60,
+    "section_id": 29,
     "part_of_speech_id": 5,
     "word": "cute",
     "meaning_cht": "可愛的",
@@ -24413,7 +24413,7 @@ const words = [
   },
   {
     "id": 1252,
-    "section_id": 60,
+    "section_id": 29,
     "part_of_speech_id": 5,
     "word": "nice",
     "meaning_cht": "親切的/好的",
@@ -24422,7 +24422,7 @@ const words = [
   },
   {
     "id": 1253,
-    "section_id": 60,
+    "section_id": 28,
     "part_of_speech_id": 5,
     "word": "afraid",
     "meaning_cht": "害怕的",
@@ -24431,7 +24431,7 @@ const words = [
   },
   {
     "id": 1254,
-    "section_id": 60,
+    "section_id": 29,
     "part_of_speech_id": 5,
     "word": "careful",
     "meaning_cht": "小心的",
@@ -24440,7 +24440,7 @@ const words = [
   },
   {
     "id": 1255,
-    "section_id": 60,
+    "section_id": 55,
     "part_of_speech_id": 9,
     "word": "okay",
     "meaning_cht": "好的",
@@ -24449,7 +24449,7 @@ const words = [
   },
   {
     "id": 1256,
-    "section_id": 60,
+    "section_id": 6,
     "part_of_speech_id": 1,
     "word": "puppy",
     "meaning_cht": "小狗",
@@ -24458,7 +24458,7 @@ const words = [
   },
   {
     "id": 1257,
-    "section_id": 60,
+    "section_id": 6,
     "part_of_speech_id": 1,
     "word": "kitten",
     "meaning_cht": "小貓",
@@ -24467,7 +24467,7 @@ const words = [
   },
   {
     "id": 1258,
-    "section_id": 60,
+    "section_id": 11,
     "part_of_speech_id": 1,
     "word": "toothbrush",
     "meaning_cht": "牙刷",
@@ -24476,7 +24476,7 @@ const words = [
   },
   {
     "id": 1259,
-    "section_id": 60,
+    "section_id": 11,
     "part_of_speech_id": 1,
     "word": "toothpaste",
     "meaning_cht": "牙膏",
@@ -24485,7 +24485,7 @@ const words = [
   },
   {
     "id": 1260,
-    "section_id": 60,
+    "section_id": 12,
     "part_of_speech_id": 1,
     "word": "block",
     "meaning_cht": "積木",
@@ -24494,7 +24494,7 @@ const words = [
   },
   {
     "id": 1261,
-    "section_id": 60,
+    "section_id": 33,
     "part_of_speech_id": 1,
     "word": "bedtime",
     "meaning_cht": "睡覺時間",
@@ -24503,7 +24503,7 @@ const words = [
   },
   {
     "id": 1262,
-    "section_id": 60,
+    "section_id": 12,
     "part_of_speech_id": 1,
     "word": "teddy bear",
     "meaning_cht": "泰迪熊",
@@ -24512,7 +24512,7 @@ const words = [
   },
   {
     "id": 1263,
-    "section_id": 60,
+    "section_id": 9,
     "part_of_speech_id": 1,
     "word": "boots",
     "meaning_cht": "靴子",
@@ -24521,7 +24521,7 @@ const words = [
   },
   {
     "id": 1264,
-    "section_id": 60,
+    "section_id": 18,
     "part_of_speech_id": 2,
     "word": "chase",
     "meaning_cht": "追逐",
@@ -24530,7 +24530,7 @@ const words = [
   },
   {
     "id": 1265,
-    "section_id": 60,
+    "section_id": 34,
     "part_of_speech_id": 8,
     "word": "next to",
     "meaning_cht": "在...旁邊",
@@ -24539,7 +24539,7 @@ const words = [
   },
   {
     "id": 1266,
-    "section_id": 60,
+    "section_id": 4,
     "part_of_speech_id": 12,
     "word": "eleven",
     "meaning_cht": "十一",
@@ -24548,7 +24548,7 @@ const words = [
   },
   {
     "id": 1267,
-    "section_id": 60,
+    "section_id": 38,
     "part_of_speech_id": 4,
     "word": "another",
     "meaning_cht": "另一個",
@@ -24559,7 +24559,67 @@ const words = [
   if (a.section_id !== b.section_id) return a.section_id - b.section_id;
   return a.id - b.id;
 });
-const sections = [{ "id": 1, "name": "自我認識", "number": 1 }, { "id": 2, "name": "家庭", "number": 2 }, { "id": 3, "name": "身體部位", "number": 3 }, { "id": 4, "name": "數字與顏色", "number": 4 }, { "id": 5, "name": "形狀與大小", "number": 5 }, { "id": 6, "name": "動物與昆蟲", "number": 6 }, { "id": 7, "name": "食物與飲料", "number": 7 }, { "id": 8, "name": "餐具與廚房", "number": 8 }, { "id": 9, "name": "衣物", "number": 9 }, { "id": 10, "name": "家與房間", "number": 10 }, { "id": 11, "name": "家具與物品", "number": 11 }, { "id": 12, "name": "玩具與遊戲", "number": 12 }, { "id": 13, "name": "學校與學習", "number": 13 }, { "id": 14, "name": "地點", "number": 14 }, { "id": 15, "name": "自然與天氣", "number": 15 }, { "id": 16, "name": "地形與自然環境", "number": 16 }, { "id": 17, "name": "材質", "number": 17 }, { "id": 18, "name": "基本動作", "number": 18 }, { "id": 19, "name": "手部動作", "number": 19 }, { "id": 20, "name": "感官動作", "number": 20 }, { "id": 21, "name": "口語動作", "number": 21 }, { "id": 22, "name": "思考與想像", "number": 22 }, { "id": 23, "name": "創造與建造", "number": 23 }, { "id": 24, "name": "日常活動", "number": 24 }, { "id": 25, "name": "互動行為", "number": 25 }, { "id": 26, "name": "改變狀態", "number": 26 }, { "id": 27, "name": "尋找與發現", "number": 27 }, { "id": 28, "name": "情緒與感受", "number": 28 }, { "id": 29, "name": "性質形容詞", "number": 29 }, { "id": 30, "name": "溫度與觸感", "number": 30 }, { "id": 31, "name": "速度與狀態", "number": 31 }, { "id": 32, "name": "程度與數量", "number": 32 }, { "id": 33, "name": "時間", "number": 33 }, { "id": 34, "name": "位置與方向", "number": 34 }, { "id": 35, "name": "連接詞與邏輯", "number": 35 }, { "id": 36, "name": "疑問詞", "number": 36 }, { "id": 37, "name": "代名詞", "number": 37 }, { "id": 38, "name": "冠詞與限定詞", "number": 38 }, { "id": 39, "name": "Be動詞與助動詞", "number": 39 }, { "id": 40, "name": "禮貌用語", "number": 40 }, { "id": 41, "name": "交通工具", "number": 41 }, { "id": 42, "name": "職業", "number": 42 }, { "id": 43, "name": "運動與比賽", "number": 43 }, { "id": 44, "name": "健康", "number": 44 }, { "id": 45, "name": "品德與行為", "number": 45 }, { "id": 46, "name": "購物與金錢", "number": 46 }, { "id": 47, "name": "選擇與決定", "number": 47 }, { "id": 48, "name": "機會與運氣", "number": 48 }, { "id": 49, "name": "數學", "number": 49 }, { "id": 50, "name": "科技", "number": 50 }, { "id": 51, "name": "故事與想像", "number": 51 }, { "id": 52, "name": "聲音", "number": 52 }, { "id": 53, "name": "光線與視覺", "number": 53 }, { "id": 54, "name": "其他常用動詞", "number": 54 }, { "id": 55, "name": "其他常用詞", "number": 55 }, { "id": 56, "name": "其他形容詞", "number": 56 }, { "id": 57, "name": "其他副詞", "number": 57 }, { "id": 58, "name": "動詞變化形", "number": 58 }, { "id": 59, "name": "其他", "number": 59 }, { "id": 60, "name": "核心常用字", "number": 60 }];
+const sections = [
+  { id: 1, name: "自我認識", number: 1 },
+  { id: 2, name: "家庭", number: 2 },
+  { id: 3, name: "身體部位", number: 3 },
+  { id: 4, name: "數字與顏色", number: 4 },
+  { id: 5, name: "形狀與大小", number: 5 },
+  { id: 6, name: "動物與昆蟲", number: 6 },
+  { id: 7, name: "食物與飲料", number: 7 },
+  { id: 8, name: "餐具與廚房", number: 8 },
+  { id: 9, name: "衣物", number: 9 },
+  { id: 10, name: "家與房間", number: 10 },
+  { id: 11, name: "家具與物品", number: 11 },
+  { id: 12, name: "玩具與遊戲", number: 12 },
+  { id: 13, name: "學校與學習", number: 13 },
+  { id: 14, name: "地點", number: 14 },
+  { id: 15, name: "自然與天氣", number: 15 },
+  { id: 16, name: "地形與自然環境", number: 16 },
+  { id: 17, name: "材質", number: 17 },
+  { id: 18, name: "基本動作", number: 18 },
+  { id: 19, name: "手部動作", number: 19 },
+  { id: 20, name: "感官動作", number: 20 },
+  { id: 21, name: "口語動作", number: 21 },
+  { id: 22, name: "思考與想像", number: 22 },
+  { id: 23, name: "創造與建造", number: 23 },
+  { id: 24, name: "日常活動", number: 24 },
+  { id: 25, name: "互動行為", number: 25 },
+  { id: 26, name: "改變狀態", number: 26 },
+  { id: 27, name: "尋找與發現", number: 27 },
+  { id: 28, name: "情緒與感受", number: 28 },
+  { id: 29, name: "性質形容詞", number: 29 },
+  { id: 30, name: "溫度與觸感", number: 30 },
+  { id: 31, name: "速度與狀態", number: 31 },
+  { id: 32, name: "程度與數量", number: 32 },
+  { id: 33, name: "時間", number: 33 },
+  { id: 34, name: "位置與方向", number: 34 },
+  { id: 35, name: "連接詞與邏輯", number: 35 },
+  { id: 36, name: "疑問詞", number: 36 },
+  { id: 37, name: "代名詞", number: 37 },
+  { id: 38, name: "冠詞與限定詞", number: 38 },
+  { id: 39, name: "Be動詞與助動詞", number: 39 },
+  { id: 40, name: "禮貌用語", number: 40 },
+  { id: 41, name: "交通工具", number: 41 },
+  { id: 42, name: "職業", number: 42 },
+  { id: 43, name: "運動與比賽", number: 43 },
+  { id: 44, name: "健康", number: 44 },
+  { id: 45, name: "品德與行為", number: 45 },
+  { id: 46, name: "購物與金錢", number: 46 },
+  { id: 47, name: "選擇與決定", number: 47 },
+  { id: 48, name: "機會與運氣", number: 48 },
+  { id: 49, name: "數學", number: 49 },
+  { id: 50, name: "科技", number: 50 },
+  { id: 51, name: "故事與想像", number: 51 },
+  { id: 52, name: "聲音", number: 52 },
+  { id: 53, name: "光線與視覺", number: 53 },
+  { id: 54, name: "其他常用動詞", number: 54 },
+  { id: 55, name: "其他常用詞", number: 55 },
+  { id: 56, name: "其他形容詞", number: 56 },
+  { id: 57, name: "其他副詞", number: 57 },
+  { id: 58, name: "動詞變化形", number: 58 },
+  { id: 59, name: "其他", number: 59 }
+];
 const partsOfSpeech = [{ "id": 1, "tag": "Noun" }, { "id": 2, "tag": "Verb" }, { "id": 3, "tag": "Pronoun" }, { "id": 4, "tag": "Determiner" }, { "id": 5, "tag": "Adjective" }, { "id": 6, "tag": "Verb Phrase" }, { "id": 7, "tag": "Adverb" }, { "id": 8, "tag": "Preposition" }, { "id": 9, "tag": "Interjection" }, { "id": 10, "tag": "Conjunction" }, { "id": 11, "tag": "Modal Verb" }, { "id": 12, "tag": "Number" }, { "id": 13, "tag": "Contraction" }];
 function useWordData() {
   const loading = false;
